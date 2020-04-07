@@ -17,28 +17,14 @@ public class HumanController : MonoBehaviour {
     }
     
     void OnMouseOver() {
-        this.state = State.Hover;
+        if(this.state != State.Selected) this.state = State.Hover;
     }
 
     void OnMouseExit() {
-        this.state = State.Unselected;
+        if(this.state != State.Selected) this.state = State.Unselected;
     }
 
     private void Update() {
-        moveX = Input.GetAxisRaw("Horizontal");
-        moveY = Input.GetAxisRaw("Vertical");
-
-        Debug.Log(transform.position.x);
-        if(Input.GetMouseButtonDown(0)) {
-            RaycastHit hitInfo = new RaycastHit();
-            bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
-            if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Human")) {
-                hitInfo.transform.gameObject.GetComponent<HumanController>().state = State.Selected;
-            } else {
-                Debug.Log("Not it Chief");
-            }
-        }
-        
         if(state == State.Selected) {
             m_Renderer.material.color = Color.red;
         } else {
