@@ -31,4 +31,8 @@ public class HumanController : MonoBehaviour {
             m_Renderer.material.color = Color.blue;
         }
     }
+
+    public void moveHuman(Vector3Int loc) {
+        
+    }
 }

@@ -25,7 +25,6 @@ public class GameManager : MonoBehaviour {
             bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
             if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Human")) {
                 if(!selected) selected = hitInfo.transform.gameObject.GetComponent<HumanController>();
-                Debug.Log(selected);
                 if(selected == hitInfo.transform.gameObject) return;
                 selected.state = State.Unselected;
                 selected = hitInfo.transform.gameObject.GetComponent<HumanController>();
