@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using GlobalEnums;
 
-public enum State {Selected, Unselected, Hover, Tired}
 public class HumanController : MonoBehaviour {
     public Vector3Int gridPos;
     public Human human;
-    public State state;
+    public HumanState state;
     public float moveX;
     public float moveY;
     MeshRenderer m_Renderer;    

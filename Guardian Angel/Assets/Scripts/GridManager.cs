@@ -3,6 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GridManager : MonoBehaviour {
+    public static GridManager current;
+
+    private void Awake() {
+        if(current == null) {
+            current = this;
+            DontDestroyOnLoad(gameObject);
+        } else {
+            DestroyImmediate(gameObject);
+            return;
+        }
+    }
     [SerializeField] private Transform ground = default;
     public Vector2Int size;
     [SerializeField] Texture2D gridTexture = default;
