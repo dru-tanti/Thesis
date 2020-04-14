@@ -6,6 +6,7 @@ public class GameManager : MonoBehaviour {
     public static GameManager current;
     private HumanController _selected;
     [SerializeField] private GridManager _grid = default;
+
     private void Awake() {
         if(current == null) {
             current = this;
@@ -23,8 +24,8 @@ public class GameManager : MonoBehaviour {
             bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
             if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Ground")) {
                 Node tile = hitInfo.transform.gameObject.GetComponent<Node>();
-                //if 
-                // TODO: Add properties to be accessed when selecting a ground tile.
+                if(!_selected) return;
+                _selected.moveHuman(tile.pos);
             } else if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Human")) {
                 if(!_selected) _selected = hitInfo.transform.gameObject.GetComponent<HumanController>();
                 if(_selected == hitInfo.transform.gameObject) return;

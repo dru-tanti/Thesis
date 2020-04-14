@@ -31,15 +31,23 @@ public class GridManager : MonoBehaviour {
         }
         int width = level.map.width;
         int height = level.map.height;
-        // Will cycle through the image in the Level Settings, and will generate a tile depending on the colour of the pixel.
+        GenerateMap(width, height);
+    }
+
+    public void GenerateMap(int width, int height) {
         for(int x = 0; x < width; x++) {
             for(int y = 0; y < height; y++) {
                 Color pixel = level.map.GetPixel(x,y);
                 IEnumerable<NodeSettings> select = _nodeSettings.Where(t => t.color == pixel);
                 if (select.Count() == 0) continue;
-                GameObject tile = select.ElementAt(0).tile;
-                GameObject node = Instantiate(tile, new Vector3Int(x - (width/2), 0, y - (height/2)), Quaternion.Euler(90, 0, 0), this.transform);
+                GameObject tileToSpawn = select.ElementAt(0).tile;
+                GameObject node = (GameObject)Instantiate(tileToSpawn, new Vector3Int(x - (width/2), 0, y - (height/2)), Quaternion.Euler(90, 0, 0), this.transform);
+                node.GetComponent<Node>().pos = new Vector3Int(x - (width/2), 0, y - (height/2));
             }
         }
+    }
+
+    public void MoveUnitTo(Vector3Int pos) {
+        
     }
 }

@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityAtoms;
 using GlobalEnums;
 
 public class HumanController : MonoBehaviour {
     public Vector3Int gridPos;
     public Human human;
     public HumanState state;
-    private MeshRenderer _mesh;    
+    private MeshRenderer _mesh;
     
     private void Awake() {
         this.state = HumanState.Unselected;
@@ -31,8 +32,10 @@ public class HumanController : MonoBehaviour {
             _mesh.material.color = Color.blue;
         }
     }
-
-    public void moveHuman(Vector3Int loc) {
-        
+    
+    // If the current object is selected move it to the designated coordinates
+    public void moveHuman(Vector3Int pos) {
+        if(this.state != HumanState.Selected) return;
+        this.transform.position = pos;
     }
 }
