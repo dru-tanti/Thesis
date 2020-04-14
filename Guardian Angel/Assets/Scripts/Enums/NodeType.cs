@@ -1,5 +1,5 @@
 ﻿namespace GlobalEnums {
-    public enum CellType {
+    public enum NodeType {
         Road, 
         Alley, 
         Climbable,

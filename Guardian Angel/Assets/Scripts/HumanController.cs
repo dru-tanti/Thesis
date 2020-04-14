@@ -7,28 +7,28 @@ public class HumanController : MonoBehaviour {
     public Vector3Int gridPos;
     public Human human;
     public HumanState state;
-    public float moveX;
-    public float moveY;
-    MeshRenderer m_Renderer;    
+    private MeshRenderer _mesh;    
     
     private void Awake() {
-        this.state = State.Unselected;
-        m_Renderer = GetComponent<MeshRenderer>();
+        this.state = HumanState.Unselected;
+        _mesh = GetComponent<MeshRenderer>();
     }
     
     void OnMouseOver() {
-        if(this.state != State.Selected) this.state = State.Hover;
+        if(this.state != HumanState.Selected) this.state = HumanState.Hover;
     }
 
     void OnMouseExit() {
-        if(this.state != State.Selected) this.state = State.Unselected;
+        if(this.state != HumanState.Selected) this.state = HumanState.Unselected;
     }
 
     private void Update() {
-        if(state == State.Selected) {
-            m_Renderer.material.color = Color.red;
+        // Change the colour of the human if it is selected.
+        // NOTE: FOR TESTING PURPOSES.
+        if(state == HumanState.Selected) {
+            _mesh.material.color = Color.red;
         } else {
-            m_Renderer.material.color = Color.blue;
+            _mesh.material.color = Color.blue;
         }
     }
 
