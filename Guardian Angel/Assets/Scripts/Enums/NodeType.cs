@@ -1,8 +1,8 @@
 ﻿namespace GlobalEnums {
     public enum NodeType {
-        Road, 
-        Alley, 
-        Climbable,
-        Building
+        Road = 1, 
+        Alley = 1, 
+        Climbable = 2,
+        Building = 0
     }
 }

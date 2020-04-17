@@ -5,7 +5,6 @@ using GlobalEnums;
 public class GameManager : MonoBehaviour {
     public static GameManager current;
     private HumanController _selected;
-    [SerializeField] private GridManager _grid = default;
 
     private void Awake() {
         if(current == null) {
@@ -15,7 +14,7 @@ public class GameManager : MonoBehaviour {
             DestroyImmediate(gameObject);
             return;
         }
-        _grid.Initialize();
+        GridManager.current.Initialize();
     }
     void Update () {
         // Then the LMB is clicked, raycast to check what has been hit.
@@ -26,6 +25,7 @@ public class GameManager : MonoBehaviour {
                 Node tile = hitInfo.transform.gameObject.GetComponent<Node>();
                 if(!_selected) return;
                 _selected.moveHuman(tile.pos);
+                GridManager.current.tileCost(new Vector2Int(tile.pos.x, tile.pos.z));
             } else if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Human")) {
                 if(!_selected) _selected = hitInfo.transform.gameObject.GetComponent<HumanController>();
                 if(_selected == hitInfo.transform.gameObject) return;
