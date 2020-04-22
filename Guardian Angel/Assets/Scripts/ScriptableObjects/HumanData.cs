@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "Human", menuName = "Guardian Angel/Human", order = 0)]
-public class Human : ScriptableObject {
+public class HumanData : ScriptableObject {
     public int age;
     public int lifeExpectancy;
     private int years;

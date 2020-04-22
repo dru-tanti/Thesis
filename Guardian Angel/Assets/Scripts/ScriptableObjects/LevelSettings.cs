@@ -5,4 +5,6 @@ public class LevelSettings : ScriptableObject {
     public Texture2D map;
     public int humans;
     public int turns;
+    public int actionPoints;
+    public int maxHazards;
 }

@@ -195,7 +195,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 4.739e-42, y: 1.01e-43, z: 980710.94, w: 0}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -290,7 +290,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 7.05, z: 0.02}
+  m_LocalPosition: {x: 5, y: 10, z: 5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -376,6 +376,7 @@ MonoBehaviour:
     tile: {fileID: 5962169545100421800, guid: c394a1f94c0094e44a04a25be7be1aab, type: 3}
   - color: {r: 1, g: 1, b: 1, a: 1}
     tile: {fileID: 5962169545100421800, guid: f039e4b4b2c470d42ad5f93beb9419f0, type: 3}
+  currentPath: []
 --- !u!4 &1093470176
 Transform:
   m_ObjectHideFlags: 0
@@ -402,7 +403,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2fd9314dad4fda45872eebbf6f8fc68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _grid: {fileID: 1093470175}
+  level: {fileID: 11400000, guid: 61305d5f8da8e2842af8ce3cd5d9e8ae, type: 2}
+  activeHazards: []
+  hazardTile: {fileID: 5962169545100421800, guid: 5faa66d9c5d295044b047979e01bb791,
+    type: 3}
+  years: {fileID: 11400000, guid: 048376f35147b354baa6fd0c7d206e6f, type: 2}
+  _playerTurn: {fileID: 11400000, guid: deae1048c1fd46a4a8e3f0e54a23a9c7, type: 2}
 --- !u!1 &1295909365
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,9 +441,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1990b5840de8e648aeb02be9fdaf78a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridPos: {x: 0, y: 0, z: 0}
+  gridPos: {x: 0, y: 0}
   human: {fileID: 0}
   state: 0
+  path: []
+  years: {fileID: 11400000, guid: 048376f35147b354baa6fd0c7d206e6f, type: 2}
 --- !u!65 &1295909367
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -506,7 +514,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1295909365}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.61, z: -1}
+  m_LocalPosition: {x: 0, y: 0.61, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -618,9 +626,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1990b5840de8e648aeb02be9fdaf78a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridPos: {x: 0, y: 0, z: 0}
+  gridPos: {x: 0, y: 0}
   human: {fileID: 0}
   state: 0
+  path: []
+  years: {fileID: 11400000, guid: 048376f35147b354baa6fd0c7d206e6f, type: 2}
 --- !u!1 &2052293059
 GameObject:
   m_ObjectHideFlags: 0
