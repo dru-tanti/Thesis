@@ -11,6 +11,7 @@ public class HumanController : MonoBehaviour {
     public List<Node> path = null;
     public IntVariable years;
     private MeshRenderer _mesh;
+    public bool _protected;
     
     private void Awake() {
         gridPos = new Vector2Int((int) transform.position.x, (int) transform.position.z);
