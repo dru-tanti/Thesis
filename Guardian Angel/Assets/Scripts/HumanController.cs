@@ -22,13 +22,15 @@ public class HumanController : MonoBehaviour {
     public void MoveNextTile() {
         if(path.Count == 0) return;
     }
-    
-    void OnMouseOver() {
+
+    void OnMouseEnter() {
         if(this.state != HumanState.Selected) this.state = HumanState.Hover;
+        GameManager.current.showText("Test Human", human.age, "Testing that this works");
     }
 
     void OnMouseExit() {
         if(this.state != HumanState.Selected) this.state = HumanState.Unselected;
+        GameManager.current.hideText();
     }
 
     private void Update() {
