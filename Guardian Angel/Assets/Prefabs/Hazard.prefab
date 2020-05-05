@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5962169545100421802}
   m_Layer: 2
   m_Name: Hazard
-  m_TagString: Untagged
+  m_TagString: Tile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

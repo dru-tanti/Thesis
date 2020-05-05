@@ -73,6 +73,12 @@ public class GameManager : MonoBehaviour {
     // Selects a random position and places a Hazard tile.
     private void setHazard() {
         for (int i = 0; i < Random.Range(1, level[currentLevel.Value].maxHazards); i++) {
+            int randomX = Random.Range(0, 10);
+            int randomY = Random.Range(0,10);
+            while(GridManager.current.walkable[randomX,randomY] == false) {
+                randomX = Random.Range(0, 10);
+                randomY = Random.Range(0,10);
+            }
             GameObject hazard = Instantiate(hazardTile, new Vector3(Random.Range(0, 10), 0.01f, Random.Range(0, 10)), Quaternion.Euler(90, 0, 0));
             activeHazards.Add(hazard);    
         }
@@ -94,12 +100,18 @@ public class GameManager : MonoBehaviour {
         activeHazards.Clear();
         currentTurn.Value++;
         if (currentTurn.Value > level[currentLevel.Value].turns) {
-            currentLevel.Value++;
-            currentTurn.Value = 0;
+            endLevel();
         }
         _playerTurn.Value = true;
         _turns.SetText("Turns Remaining: {0}", level[currentLevel.Value].turns - currentTurn.Value);
         _years.SetText("Years Collected: {0}", years.Value);
         setHazard();
+    }
+
+    public void endLevel() {
+        currentLevel.Value++;
+        currentTurn.Value = 0;
+        GridManager.current.clearGrid();
+        GridManager.current.Initialize();
     }
 }

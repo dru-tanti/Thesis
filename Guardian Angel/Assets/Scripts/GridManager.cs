@@ -23,6 +23,7 @@ public class GridManager : MonoBehaviour {
     [Header("Pathfinding")]
     public List<Node> currentPath = null;
     public Node[,] graph;
+    public bool[,] walkable;
 
     private void Awake() {
         if(current == null) {
@@ -42,7 +43,17 @@ public class GridManager : MonoBehaviour {
         }
         int width = level.map.width;
         int height = level.map.height;
+        graph = new Node[width,height];
+        walkable = new bool[width,height];
         generateMap(width, height);
+    }
+
+    public void clearGrid() {
+        GameObject[] tiles = GameObject.FindGameObjectsWithTag("Tile");
+        foreach(GameObject tile in tiles) {
+            Destroy(tile);
+        }
+        Debug.Log("All Tiles Cleared!");
     }
 
     public void generateMap(int width, int height) {
@@ -53,7 +64,9 @@ public class GridManager : MonoBehaviour {
                 if (select.Count() == 0) continue;
                 GameObject tileToSpawn = select.ElementAt(0).tile;
                 GameObject node = (GameObject)Instantiate(tileToSpawn, new Vector3Int(x, 0, y), Quaternion.Euler(90, 0, 0), this.transform);
-                node.GetComponent<Node>().pos = new Vector3Int(x, 0, y);
+                graph[x,y] = node.GetComponent<Node>();
+                graph[x,y].pos = new Vector3Int(x, 0, y);
+                walkable[x,y] = (graph[x,y].type == NodeType.Building) ? false : true;
             }
         }
     }
