@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityAtoms.BaseAtoms;
 using GlobalEnums;
 
  [System.Serializable]
@@ -14,7 +15,7 @@ public class GridManager : MonoBehaviour {
     public static GridManager current;
    
     [Header("Level Settings")]
-    public LevelSettings level;
+    public IntVariable currentLevel;
     
     [Header("Map Generation")]
     [SerializeField] private TileSettings[] _nodeSettings = null;
@@ -37,18 +38,18 @@ public class GridManager : MonoBehaviour {
 
     // Generates the map depending on the Level Settings Scriptable Object.
     public void Initialize() {
-        if(level.map == null) {
+        if(GameManager.current.level[currentLevel.Value].map == null) {
             Debug.LogError("No map was selected for this level");
             return;
         }
-        int width = level.map.width;
-        int height = level.map.height;
+        int width = GameManager.current.level[currentLevel.Value].map.width;
+        int height = GameManager.current.level[currentLevel.Value].map.height;
         graph = new Node[width,height];
         walkable = new bool[width,height];
         generateMap(width, height);
     }
 
-    public void clearGrid() {
+    public void clearMap() {
         GameObject[] tiles = GameObject.FindGameObjectsWithTag("Tile");
         foreach(GameObject tile in tiles) {
             Destroy(tile);
@@ -59,7 +60,7 @@ public class GridManager : MonoBehaviour {
     public void generateMap(int width, int height) {
         for(int x = 0; x < width; x++) {
             for(int y = 0; y < height; y++) {
-                Color pixel = level.map.GetPixel(x,y);
+                Color pixel = GameManager.current.level[currentLevel.Value].map.GetPixel(x,y);
                 IEnumerable<TileSettings> select = _nodeSettings.Where(t => t.color == pixel);
                 if (select.Count() == 0) continue;
                 GameObject tileToSpawn = select.ElementAt(0).tile;

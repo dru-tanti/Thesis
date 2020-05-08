@@ -5,7 +5,6 @@ using UnityAtoms.BaseAtoms;
 using GlobalEnums;
 
 public class HumanController : MonoBehaviour {
-    public Vector2Int gridPos;
     public HumanData human;
     public HumanState state;
     public List<Node> path = null;
@@ -14,7 +13,6 @@ public class HumanController : MonoBehaviour {
     public bool _protected;
     
     private void Awake() {
-        gridPos = new Vector2Int((int) transform.position.x, (int) transform.position.z);
         _mesh = GetComponent<MeshRenderer>();
         human = (HumanData) ScriptableObject.CreateInstance("HumanData");
         this.state = HumanState.Unselected; 
@@ -39,15 +37,19 @@ public class HumanController : MonoBehaviour {
         if(state == HumanState.Selected) {
             _mesh.material.color = Color.red;
         } else {
-            _mesh.material.color = Color.blue;
+            if(_protected) {
+                _mesh.material.color = Color.cyan;
+            } else {
+                _mesh.material.color = Color.blue;
+            }
         }
         if(state == HumanState.Hover) {
-            _mesh.material.color = Color.cyan;
+            _mesh.material.color = Color.yellow;
         }
     }
     
     // If the current object is selected move it to the designated coordinates
-    public void moveHuman(Vector3Int pos) {
+    public void moveHuman(Vector3 pos) {
         if(this.state != HumanState.Selected) return;
         this.transform.position = pos;
     }

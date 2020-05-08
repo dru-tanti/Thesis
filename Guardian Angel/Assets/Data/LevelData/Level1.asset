@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3c6f10ceeedaab4a99fa4ff08b33ee1, type: 3}
   m_Name: Level1
   m_EditorClassIdentifier: 
-  map: {fileID: 2800000, guid: 500226ba27deac44d9d07242bf08e3c3, type: 3}
-  humans: 0
+  map: {fileID: 2800000, guid: 1945a22a5d8e7514693e80746b7613fc, type: 3}
+  humans: 20
+  maxProtectedHumans: 5
   turns: 3
-  actionPoints: 4
-  maxHazards: 1
+  maxActionPoints: 6
+  maxHazards: 15
