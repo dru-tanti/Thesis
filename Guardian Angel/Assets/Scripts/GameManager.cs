@@ -105,6 +105,10 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    public void quitGame() {
+        Application.Quit();
+    }
+
     // Unselects the current human, and selects the new one.
     private void selectNewObject(RaycastHit hitInfo) {
         _selected.state = HumanState.Unselected;
