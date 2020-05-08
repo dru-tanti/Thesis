@@ -6,6 +6,7 @@ using TMPro;
 using GlobalEnums;
 public class GameManager : MonoBehaviour {
     public static GameManager current;
+    public List<GameObject> _protectedHumans;
     private HumanController _selected;
     [Header("Level Settings")]
     public LevelSettings[] level; 
@@ -16,12 +17,16 @@ public class GameManager : MonoBehaviour {
 
     [Header("Game State Information")]
     public BoolVariable _playerTurn;
-    public IntVariable years, currentTurn, currentLevel;
+    public IntVariable years, currentTurn, currentLevel, actionPoints;
 
     [Header("UI Settings")]
-    public GameObject turnCounter, yearsCounter, hoverText;
-    private TextMeshProUGUI _turns, _years, _name, _age, _description;
+    public GameObject Canvas;
+    public GameObject turnCounter, yearsCounter, hoverText, actionCounter;
+    private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description;
+
+    public List<Vector2Int> neighbors;
     private void Awake() {
+        // Sets the GameManager as a singleton
         if(current == null) {
             current = this;
             DontDestroyOnLoad(gameObject);
@@ -29,14 +34,18 @@ public class GameManager : MonoBehaviour {
             DestroyImmediate(gameObject);
             return;
         }
+        _protectedHumans = new List<GameObject>();
+        // TODO: Move to seperate script.
+        // Gets refernce to UI elements
         _turns = turnCounter.GetComponent<TextMeshProUGUI>();
         _years = yearsCounter.GetComponent<TextMeshProUGUI>();
-        GridManager.current.Initialize();
-        setHazard();
-        years.Value = 0;
+        _ap = actionCounter.GetComponent<TextMeshProUGUI>();
         currentLevel.Value = 0;
-        currentTurn.Value = 0;
+        years.Value = 0;
+        startLevel();
+        setHazard();
         _turns.SetText("Turns Remaining: {0}", GameManager.current.level[currentLevel.Value].turns - currentTurn.Value);
+        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
     }
 
     void Update () {
@@ -45,6 +54,7 @@ public class GameManager : MonoBehaviour {
             if(Input.GetMouseButtonDown(0)) {
                 RaycastHit hitInfo = new RaycastHit();
                 bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
+                // Move the selected human to that tile.
                 if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Ground")) {
                     Node tile = hitInfo.transform.gameObject.GetComponent<Node>();
                     if(!_selected) return;
@@ -52,7 +62,16 @@ public class GameManager : MonoBehaviour {
                         Debug.Log("Invalid Tile Selected");
                         return;
                     }
-                    _selected.moveHuman(new Vector3Int(tile.pos.x, 1, tile.pos.z));
+                    Vector3Int diff = Vector3Int.RoundToInt(_selected.transform.position) - tile.pos;
+                    int distance = Mathf.Abs(diff.x) + Mathf.Abs(diff.z);
+                    if((actionPoints.Value - distance) < 0) {
+                        Debug.Log("Exceeding number of moves!");
+                    } else {
+                        actionPoints.Value -= distance;
+                        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
+                        _selected.moveHuman(new Vector3Int(tile.pos.x, 0, tile.pos.z));
+                    }
+                // Select the human that was clicked.
                 } else if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Human")) {
                     if(!_selected) _selected = hitInfo.transform.gameObject.GetComponent<HumanController>();
                     if(_selected == hitInfo.transform.gameObject) return;
@@ -74,21 +93,74 @@ public class GameManager : MonoBehaviour {
     // Selects a random position and places a Hazard tile.
     private void setHazard() {
         for (int i = 0; i < Random.Range(1, level[currentLevel.Value].maxHazards); i++) {
-            // Set a random number from 0 to the length of the X and Y of graph[,]
-            int randomX = Random.Range(0,GridManager.current.graph.GetLength(0));
-            int randomY = Random.Range(0,GridManager.current.graph.GetLength(1));
-            Debug.Log(GridManager.current.graph.GetLength(0));
-            // If a non walkable tile exists in these coordinates, generate them again.
-            while(GridManager.current.walkable[randomX,randomY] == false) {
-                randomX = Random.Range(0,GridManager.current.graph.GetLength(0));
-                randomY = Random.Range(0,GridManager.current.graph.GetLength(1));
+            int dice = Random.Range(0,6);
+            int hazardType = Random.Range(0,2);
+            GameObject hazard = null;
+            Vector2Int tilePos = getTileStart();
+            // Checking if this type of hazard has exceeded the maximum.
+            // if(level[currentLevel.Value].maxHazardType[hazardType] > )
+            switch(hazardType) {
+                case 0: // Regular 1X1 Tile
+                    hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
+                    break;
+                case 1: // Long 2x1 Tile
+                    neighbors = getSurroundingTiles(tilePos);
+                    int tileIndex = Random.Range(0,neighbors.Count);
+                    Debug.Log(neighbors[tileIndex]-tilePos);
+                    hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
+                    Instantiate(hazardTile, new Vector3(neighbors[tileIndex].x, 0.01f, neighbors[tileIndex].y), Quaternion.Euler(90, 0, 0), hazard.transform);
+                    break;
+                case 2: // Big 2x2 Tile
+                    List<Vector2Int> square = new List<Vector2Int>();
+                    neighbors = getSurroundingTiles(tilePos);
+                    if(neighbors.Count < 2) {
+
+                    }
+                    Debug.Log("BigTile!");
+                    break;
             }
-            // Creates the hazard tile and adds it to the list of active hazards.
-            GameObject hazard = Instantiate(hazardTile, new Vector3(randomX, 0.01f, randomY), Quaternion.Euler(90, 0, 0));
-            activeHazards.Add(hazard);    
+            // Adds the newly created hazard to the list.
+            activeHazards.Add(hazard);
         }
     }
-    
+
+    // Looks for a walkable tile to set the initial position.
+    private Vector2Int getTileStart() {
+        // Set a random number from 0 to the length of the X and Y of graph[,]
+        Vector2Int tilePos = new Vector2Int(Random.Range(0,GridManager.current.graph.GetLength(0)), Random.Range(0,GridManager.current.graph.GetLength(1)));
+        // If a non walkable tile exists in these coordinates, generate them again.
+        while(GridManager.current.walkable[tilePos.x,tilePos.y] == false) {
+            tilePos = new Vector2Int(Random.Range(0,GridManager.current.graph.GetLength(0)), Random.Range(0,GridManager.current.graph.GetLength(1)));
+        }
+        return tilePos;
+    }
+
+    // Returns a list of positions of the tiles around a given position.
+    private List<Vector2Int> getSurroundingTiles(Vector2Int startPos) {
+        List<Vector2Int> availableTiles = new List<Vector2Int>();
+        try {
+            if(GridManager.current.walkable[startPos.x,startPos.y-1]) availableTiles.Add(new Vector2Int(startPos.x,startPos.y-1));
+        } catch (System.IndexOutOfRangeException) {
+            Debug.Log("Out of bounds");
+        }
+        try {
+            if(GridManager.current.walkable[startPos.x,startPos.y+1]) availableTiles.Add(new Vector2Int(startPos.x,startPos.y+1));
+        } catch (System.IndexOutOfRangeException) {
+            Debug.Log("Out of bounds");
+        }
+        try {
+            if(GridManager.current.walkable[startPos.x-1,startPos.y]) availableTiles.Add(new Vector2Int(startPos.x-1,startPos.y));
+        } catch (System.IndexOutOfRangeException) {
+            Debug.Log("Out of bounds");
+        }
+        try {
+            if(GridManager.current.walkable[startPos.x+1,startPos.y]) availableTiles.Add(new Vector2Int(startPos.x+1,startPos.y));
+        } catch (System.IndexOutOfRangeException) {
+            Debug.Log("Out of bounds");
+        }
+        return availableTiles;
+    }
+
     public void endTurn() {
         _playerTurn.Value = false;
         // Loops through the hazards and checks if a human is standing on top of it.
@@ -105,16 +177,28 @@ public class GameManager : MonoBehaviour {
         activeHazards.Clear();
         currentTurn.Value++;
         // Ends the level if the max turn count is exceeded.
-        if (currentTurn.Value > level[currentLevel.Value].turns) endLevel();
+        if (currentTurn.Value > level[currentLevel.Value].turns) {
+            currentLevel.Value++;
+            startLevel();
+        }
+        actionPoints.Value = level[currentLevel.Value].maxActionPoints;
         _playerTurn.Value = true;
         _turns.SetText("Turns Remaining: {0}", level[currentLevel.Value].turns - currentTurn.Value);
         _years.SetText("Years Collected: {0}", years.Value);
+        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
         setHazard();
     }
 
-    public void endLevel() {
-        currentLevel.Value++;
+    public void startLevel() {
+        // Resets the turn counter.
         currentTurn.Value = 0;
+        // Resets the list of protected humans.
+        _protectedHumans.Clear();
+        GameObject[] humans = GameObject.FindGameObjectsWithTag("Player");
+        foreach(GameObject human in humans) {
+            if(human.GetComponent<HumanController>()._protected) _protectedHumans.Add(human);
+        }
+        // Resets the map
         GridManager.current.clearGrid();
         GridManager.current.Initialize();
     }

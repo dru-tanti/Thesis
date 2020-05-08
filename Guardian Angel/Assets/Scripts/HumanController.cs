@@ -17,7 +17,7 @@ public class HumanController : MonoBehaviour {
         gridPos = new Vector2Int((int) transform.position.x, (int) transform.position.z);
         _mesh = GetComponent<MeshRenderer>();
         human = (HumanData) ScriptableObject.CreateInstance("HumanData");
-        this.state = HumanState.Unselected;
+        this.state = HumanState.Unselected; 
     }
     public void MoveNextTile() {
         if(path.Count == 0) return;
