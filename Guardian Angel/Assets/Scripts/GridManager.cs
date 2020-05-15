@@ -81,6 +81,7 @@ public class GridManager : MonoBehaviour {
         triangles[2] = triangles[3] = 1;
         triangles[5] = 3;
         _mesh.triangles = triangles;
+        surface.BuildNavMesh();
     }
 
     public void generateMap(int width, int height) {
