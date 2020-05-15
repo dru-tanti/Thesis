@@ -11,6 +11,7 @@ public class TileSettings {
     public GameObject tile; // What tile will be placed on the pixel.
 }
 
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class GridManager : MonoBehaviour {
     public static GridManager current;
    
@@ -19,13 +20,15 @@ public class GridManager : MonoBehaviour {
     
     [Header("Map Generation")]
     [SerializeField] private TileSettings[] _nodeSettings = null;
+    private Vector3[] _vertices;
+    private Mesh _mesh;
     // public GameObject[,] activeTiles;
 
     [Header("Pathfinding")]
     public List<Node> currentPath = null;
     public Node[,] graph;
     public bool[,] walkable;
-
+    
     private void Awake() {
         if(current == null) {
             current = this;
@@ -44,9 +47,13 @@ public class GridManager : MonoBehaviour {
         }
         int width = GameManager.current.level[currentLevel.Value].map.width;
         int height = GameManager.current.level[currentLevel.Value].map.height;
+        GetComponent<MeshFilter>().mesh = _mesh = new Mesh();
+        _mesh.name = "Map";
+        _vertices = new Vector3[width * height];
         graph = new Node[width,height];
         walkable = new bool[width,height];
         generateMap(width, height);
+        // generateNavMesh(width, height);
     }
 
     public void clearMap() {
@@ -55,6 +62,21 @@ public class GridManager : MonoBehaviour {
             Destroy(tile);
         }
         Debug.Log("All Tiles Cleared!");
+    }
+
+    // Creates a simple 2 trianlge mesh to be used with the Unity NavMesh.
+    private void generateNavMesh(int width, int height) {
+        _vertices[0] = new Vector3(0,0,0);
+        _vertices[1] = new Vector3(width,0,0);
+        _vertices[2] = new Vector3(0,0,height);
+        _vertices[3] = new Vector3(width,0,height);
+        _mesh.vertices = _vertices;
+        int[] triangles = new int[6];
+        triangles[0] = 0;
+        triangles[1] = triangles[4] = 2;
+        triangles[2] = triangles[3] = 1;
+        triangles[5] = 3;
+        _mesh.triangles = triangles;
     }
 
     public void generateMap(int width, int height) {
@@ -71,4 +93,11 @@ public class GridManager : MonoBehaviour {
             }
         }
     }
+    private void OnDrawGizmos () {
+        if(_vertices == null) return;
+		Gizmos.color = Color.black;
+		for (int i = 0; i < _vertices.Length; i++) {
+			Gizmos.DrawSphere(_vertices[i], 0.1f);
+		}
+	}
 }
