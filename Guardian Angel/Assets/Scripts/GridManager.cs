@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityAtoms.BaseAtoms;
 using GlobalEnums;
 
@@ -13,6 +14,7 @@ public class TileSettings {
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class GridManager : MonoBehaviour {
+    public NavMeshSurface surface;
     public static GridManager current;
    
     [Header("Level Settings")]
@@ -30,6 +32,7 @@ public class GridManager : MonoBehaviour {
     public bool[,] walkable;
     
     private void Awake() {
+        surface = this.GetComponent<NavMeshSurface>();
         if(current == null) {
             current = this;
             DontDestroyOnLoad(gameObject);
@@ -49,11 +52,10 @@ public class GridManager : MonoBehaviour {
         int height = GameManager.current.level[currentLevel.Value].map.height;
         GetComponent<MeshFilter>().mesh = _mesh = new Mesh();
         _mesh.name = "Map";
-        _vertices = new Vector3[width * height];
         graph = new Node[width,height];
         walkable = new bool[width,height];
         generateMap(width, height);
-        // generateNavMesh(width, height);
+        generateNavMesh(width, height);
     }
 
     public void clearMap() {
@@ -66,10 +68,12 @@ public class GridManager : MonoBehaviour {
 
     // Creates a simple 2 trianlge mesh to be used with the Unity NavMesh.
     private void generateNavMesh(int width, int height) {
-        _vertices[0] = new Vector3(0,0,0);
-        _vertices[1] = new Vector3(width,0,0);
-        _vertices[2] = new Vector3(0,0,height);
-        _vertices[3] = new Vector3(width,0,height);
+        _mesh.Clear();
+        _vertices = new Vector3[(width+1) * (height+1)];
+        _vertices[0] = new Vector3(0,0,0); // Bottom Left
+        _vertices[1] = new Vector3(width,0,0); // Bottom Right
+        _vertices[2] = new Vector3(0,0,height); // Top Left
+        _vertices[3] = new Vector3(width,0,height); // Top Right
         _mesh.vertices = _vertices;
         int[] triangles = new int[6];
         triangles[0] = 0;

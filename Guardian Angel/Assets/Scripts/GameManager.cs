@@ -254,6 +254,7 @@ public class GameManager : MonoBehaviour {
         // Resets the map
         GridManager.current.clearMap();
         GridManager.current.Initialize();
+        GridManager.current.surface.BuildNavMesh();
         // Resets the list of protected humans.
         clearHumans();
         setHuman();
