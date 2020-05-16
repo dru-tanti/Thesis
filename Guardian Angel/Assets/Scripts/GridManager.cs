@@ -14,7 +14,6 @@ public class TileSettings {
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class GridManager : MonoBehaviour {
-    public NavMeshSurface surface;
     public static GridManager current;
    
     [Header("Level Settings")]
@@ -27,10 +26,12 @@ public class GridManager : MonoBehaviour {
     // public GameObject[,] activeTiles;
 
     [Header("Pathfinding")]
+    public NavMeshSurface surface;
+    private NavMeshPath path;
     public List<Node> currentPath = null;
     public Node[,] graph;
     public bool[,] walkable;
-    
+    private int distance = 0;
     private void Awake() {
         surface = this.GetComponent<NavMeshSurface>();
         if(current == null) {
@@ -40,6 +41,11 @@ public class GridManager : MonoBehaviour {
             DestroyImmediate(gameObject);
             return;
         }
+        path = new NavMeshPath();
+    }
+    private void Update() {
+        for (int i = 0; i < path.corners.Length - 1; i++)
+            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.red);
     }
 
     // Generates the map depending on the Level Settings Scriptable Object.
@@ -105,4 +111,36 @@ public class GridManager : MonoBehaviour {
 			Gizmos.DrawSphere(_vertices[i], 0.1f);
 		}
 	}
+    
+    public int findDistance(Vector3 currPos, Vector3 targetPos) {
+        int distance = 0;
+        Vector3 diff = currPos - targetPos;
+        Debug.Log(diff.normalized);
+        // First checks if the movement was in a straight line. 
+        // If it was, we'll simply get the difference between the current and target Vector3s
+        if((diff.normalized.x != 0 && diff.normalized.y == 0) || (diff.normalized.x == 0 && diff.normalized.y != 0)) {
+            distance = (int) Mathf.Abs(diff.x) + (int) Mathf.Abs(diff.z);
+            Debug.Log("Straight Line Distance: " + distance);
+            return distance;
+        }
+        // If the difference is not a straight line, then we'll check the path using the NavMesh.
+        path = new NavMeshPath();
+        if(!NavMesh.CalculatePath(currPos, targetPos, NavMesh.AllAreas, path))   Debug.LogError("No Path Found!");
+ 
+        if(!GameManager.current._selected.transform.GetComponent<NavMeshAgent>().SetPath(path)) Debug.LogError("No Path Set!");
+        Vector3[] allWayPoints = new Vector3[path.corners.Length + 2];
+        allWayPoints[0] = currPos;
+        allWayPoints[allWayPoints.Length - 1] = targetPos;
+        for (int i = 0; i < path.corners.Length; i++){
+            allWayPoints[i+1] = path.corners[i];
+        }
+        float pathLength = 0;
+        for (int i = 0; i < allWayPoints.Length - 1; i++) {
+            pathLength += Vector3.Distance(allWayPoints[i], allWayPoints[i+1]);
+        }
+        distance = Mathf.RoundToInt(pathLength);
+        Debug.Log(pathLength);
+        Debug.Log("Round a corner Distance: "+distance);
+        return distance;
+    }
 }

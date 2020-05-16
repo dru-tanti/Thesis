@@ -852,13 +852,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5523a8a612b27be409371527bbd1c2e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  surface: {fileID: 0}
   currentLevel: {fileID: 11400000, guid: 96df035af7005724c846b3c35d3b1b57, type: 2}
   _nodeSettings:
   - color: {r: 0, g: 0, b: 0, a: 1}
     tile: {fileID: 5962169545100421800, guid: c394a1f94c0094e44a04a25be7be1aab, type: 3}
   - color: {r: 1, g: 1, b: 1, a: 1}
     tile: {fileID: 5962169545100421800, guid: f039e4b4b2c470d42ad5f93beb9419f0, type: 3}
+  surface: {fileID: 0}
   currentPath: []
 --- !u!4 &654104043
 Transform:
@@ -943,10 +943,10 @@ MonoBehaviour:
   m_DefaultArea: 0
   m_IgnoreNavMeshAgent: 1
   m_IgnoreNavMeshObstacle: 1
-  m_OverrideTileSize: 0
-  m_TileSize: 256
+  m_OverrideTileSize: 1
+  m_TileSize: 16
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.016666668
+  m_VoxelSize: 0.1
   m_BuildHeightMesh: 0
   m_NavMeshData: {fileID: 0}
 --- !u!1 &670289964
@@ -1933,6 +1933,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2fd9314dad4fda45872eebbf6f8fc68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _selected: {fileID: 0}
   level:
   - {fileID: 11400000, guid: 61305d5f8da8e2842af8ce3cd5d9e8ae, type: 2}
   - {fileID: 11400000, guid: 05488985afd12b04595c3dca623f65b1, type: 2}

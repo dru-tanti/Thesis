@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityAtoms.BaseAtoms;
 using TMPro;
 using GlobalEnums;
+
 public class GameManager : MonoBehaviour {
     public static GameManager current;
-    private HumanController _selected;
+    [HideInInspector] public HumanController _selected;
     [Header("Level Settings")]
     public LevelSettings[] level; 
 
@@ -57,6 +59,7 @@ public class GameManager : MonoBehaviour {
     }
 
     void Update () {
+        
         if(_playerTurn.Value) {
             // Then the LMB is clicked, raycast to check what has been hit.
             if(Input.GetMouseButtonDown(0)) {
@@ -70,8 +73,13 @@ public class GameManager : MonoBehaviour {
                         Debug.Log("Invalid Tile Selected");
                         return;
                     }
-                    Vector3Int diff = Vector3Int.RoundToInt(_selected.transform.position) - tile.pos;
-                    int distance = Mathf.Abs(diff.x) + Mathf.Abs(diff.z);
+                    //------------------------------------------------------------------------------------
+                    // Pathfinding.
+                    //------------------------------------------------------------------------------------
+                    int distance = GridManager.current.findDistance(_selected.transform.position, tile.pos);
+                    // Debug.Log(distance);
+                    // Vector3Int diff = Vector3Int.RoundToInt(_selected.transform.position) - tile.pos;
+                    // int distance = Mathf.Abs(diff.x) + Mathf.Abs(diff.z);
                     if((actionPoints.Value - distance) < 0) {
                         Debug.Log("Exceeding number of moves!");
                     } else {
@@ -79,6 +87,7 @@ public class GameManager : MonoBehaviour {
                         _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
                         _selected.moveHuman(new Vector3(tile.pos.x, 0.6f, tile.pos.z));
                     }
+                    //------------------------------------------------------------------------------------
                 // Select the human that was clicked.
                 } else if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Human")) {
                     if(!_selected) _selected = hitInfo.transform.gameObject.GetComponent<HumanController>();
