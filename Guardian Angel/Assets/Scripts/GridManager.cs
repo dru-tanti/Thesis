@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.AI;
+using Pathfinding;
 using UnityAtoms.BaseAtoms;
 using GlobalEnums;
 
@@ -23,17 +23,14 @@ public class GridManager : MonoBehaviour {
     [SerializeField] private TileSettings[] _nodeSettings = null;
     private Vector3[] _vertices;
     private Mesh _mesh;
-    // public GameObject[,] activeTiles;
 
     [Header("Pathfinding")]
-    public NavMeshSurface surface;
-    private NavMeshPath path;
+    private Seeker seeker;
     public List<Node> currentPath = null;
     public Node[,] graph;
     public bool[,] walkable;
     private int distance = 0;
     private void Awake() {
-        surface = this.GetComponent<NavMeshSurface>();
         if(current == null) {
             current = this;
             DontDestroyOnLoad(gameObject);
@@ -41,11 +38,11 @@ public class GridManager : MonoBehaviour {
             DestroyImmediate(gameObject);
             return;
         }
-        path = new NavMeshPath();
+        seeker = GetComponent<Seeker>();
     }
     private void Update() {
-        for (int i = 0; i < path.corners.Length - 1; i++)
-            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.red);
+        // for (int i = 0; i < path.corners.Length - 1; i++)
+        //     Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.red);
     }
 
     // Generates the map depending on the Level Settings Scriptable Object.
@@ -61,7 +58,7 @@ public class GridManager : MonoBehaviour {
         graph = new Node[width,height];
         walkable = new bool[width,height];
         generateMap(width, height);
-        generateNavMesh(width, height);
+        generateGridGraph(width, height);
     }
 
     public void clearMap() {
@@ -72,24 +69,27 @@ public class GridManager : MonoBehaviour {
         Debug.Log("All Tiles Cleared!");
     }
 
-    // Creates a simple 2 trianlge mesh to be used with the Unity NavMesh.
-    private void generateNavMesh(int width, int height) {
-        _mesh.Clear();
-        _vertices = new Vector3[(width+1) * (height+1)];
-        _vertices[0] = new Vector3(0,0,0); // Bottom Left
-        _vertices[1] = new Vector3(width,0,0); // Bottom Right
-        _vertices[2] = new Vector3(0,0,height); // Top Left
-        _vertices[3] = new Vector3(width,0,height); // Top Right
-        _mesh.vertices = _vertices;
-        int[] triangles = new int[6];
-        triangles[0] = 0;
-        triangles[1] = triangles[4] = 2;
-        triangles[2] = triangles[3] = 1;
-        triangles[5] = 3;
-        _mesh.triangles = triangles;
-        surface.BuildNavMesh();
+    // Generates a grid graph for the A* Pathfinding system.
+    private void generateGridGraph(int width, int height) {
+        AstarData data = AstarPath.active.data;
+        GridGraph gg = data.AddGraph(typeof(GridGraph)) as GridGraph;
+        float nodeSize = 1f;
+        gg.center = new Vector3((width/2)-0.5f, 0, (height/2)-0.5f);
+        gg.SetDimensions(width, height,nodeSize);
+        gg.neighbours = NumNeighbours.Four;
+        AstarPath.active.Scan();
+        AstarPath.active.AddWorkItem(new AstarWorkItem(ctx => {
+            for(int x = 0; x < width; x++) {
+                for(int y = 0; y < height; y++) {
+                    var node = gg.GetNode(x,y);
+                    node.Walkable = walkable[x,y];
+                }
+            }
+            gg.GetNodes(node => gg.CalculateConnections((GridNodeBase)node));
+        }));
     }
 
+    // Generates the tiles that will form the playable map.
     public void generateMap(int width, int height) {
         for(int x = 0; x < width; x++) {
             for(int y = 0; y < height; y++) {
@@ -104,43 +104,15 @@ public class GridManager : MonoBehaviour {
             }
         }
     }
-    private void OnDrawGizmos () {
-        if(_vertices == null) return;
-		Gizmos.color = Color.black;
-		for (int i = 0; i < _vertices.Length; i++) {
-			Gizmos.DrawSphere(_vertices[i], 0.1f);
-		}
-	}
     
     public int findDistance(Vector3 currPos, Vector3 targetPos) {
+        // if(AstarPath.active == null) return;
         int distance = 0;
-        Vector3 diff = currPos - targetPos;
-        Debug.Log(diff.normalized);
-        // First checks if the movement was in a straight line. 
-        // If it was, we'll simply get the difference between the current and target Vector3s
-        if((diff.normalized.x != 0 && diff.normalized.y == 0) || (diff.normalized.x == 0 && diff.normalized.y != 0)) {
-            distance = (int) Mathf.Abs(diff.x) + (int) Mathf.Abs(diff.z);
-            Debug.Log("Straight Line Distance: " + distance);
-            return distance;
-        }
-        // If the difference is not a straight line, then we'll check the path using the NavMesh.
-        path = new NavMeshPath();
-        if(!NavMesh.CalculatePath(currPos, targetPos, NavMesh.AllAreas, path))   Debug.LogError("No Path Found!");
- 
-        if(!GameManager.current._selected.transform.GetComponent<NavMeshAgent>().SetPath(path)) Debug.LogError("No Path Set!");
-        Vector3[] allWayPoints = new Vector3[path.corners.Length + 2];
-        allWayPoints[0] = currPos;
-        allWayPoints[allWayPoints.Length - 1] = targetPos;
-        for (int i = 0; i < path.corners.Length; i++){
-            allWayPoints[i+1] = path.corners[i];
-        }
-        float pathLength = 0;
-        for (int i = 0; i < allWayPoints.Length - 1; i++) {
-            pathLength += Vector3.Distance(allWayPoints[i], allWayPoints[i+1]);
-        }
-        distance = Mathf.RoundToInt(pathLength);
-        Debug.Log(pathLength);
-        Debug.Log("Round a corner Distance: "+distance);
+        Path path = seeker.StartPath(currPos, targetPos);
+        path.BlockUntilCalculated();
+        float length = path.GetTotalLength();
+        distance = Mathf.RoundToInt(length);
+        Debug.Log("Total distance of path: "+distance);
         return distance;
     }
 }

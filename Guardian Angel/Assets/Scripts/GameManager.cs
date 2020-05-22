@@ -59,7 +59,6 @@ public class GameManager : MonoBehaviour {
     }
 
     void Update () {
-        
         if(_playerTurn.Value) {
             // Then the LMB is clicked, raycast to check what has been hit.
             if(Input.GetMouseButtonDown(0)) {
@@ -77,9 +76,6 @@ public class GameManager : MonoBehaviour {
                     // Pathfinding.
                     //------------------------------------------------------------------------------------
                     int distance = GridManager.current.findDistance(_selected.transform.position, tile.pos);
-                    // Debug.Log(distance);
-                    // Vector3Int diff = Vector3Int.RoundToInt(_selected.transform.position) - tile.pos;
-                    // int distance = Mathf.Abs(diff.x) + Mathf.Abs(diff.z);
                     if((actionPoints.Value - distance) < 0) {
                         Debug.Log("Exceeding number of moves!");
                     } else {
@@ -98,24 +94,7 @@ public class GameManager : MonoBehaviour {
                 }
             }
         }
-
         if(Input.GetKeyDown(KeyCode.Escape)) Pause();
-    }
-
-    public void Pause() {
-        gamePaused = !gamePaused;
-        pauseMenu.SetActive(gamePaused);
-        if(gamePaused) {
-            Time.timeScale = 0.0f;
-            Time.fixedDeltaTime = 0f * Time.timeScale;
-        } else {
-            Time.timeScale = 1f;
-            Time.fixedDeltaTime = 0.02F * Time.timeScale;
-        }
-    }
-
-    public void quitGame() {
-        Application.Quit();
     }
 
     // Unselects the current human, and selects the new one.
@@ -167,6 +146,7 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    // Instantiates the Humans and sets their positions
     void setHuman() {
         _protectedHumans.Clear();
         for (int i = 0; i < level[currentLevel.Value].humans; i++) {
@@ -282,5 +262,21 @@ public class GameManager : MonoBehaviour {
 
     public void hideText() {
         hoverText.SetActive(false);
+    }
+
+    public void Pause() {
+        gamePaused = !gamePaused;
+        pauseMenu.SetActive(gamePaused);
+        if(gamePaused) {
+            Time.timeScale = 0.0f;
+            Time.fixedDeltaTime = 0f * Time.timeScale;
+        } else {
+            Time.timeScale = 1f;
+            Time.fixedDeltaTime = 0.02F * Time.timeScale;
+        }
+    }
+
+    public void quitGame() {
+        Application.Quit();
     }
 }
