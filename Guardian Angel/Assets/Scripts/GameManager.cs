@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour {
     public GameObject protectedHuman, regularHuman;
 
     [Header("UI Settings")]
+    public CameraController camera;
     public bool gamePaused = false;
     public GameObject pauseMenu, turnCounter, yearsCounter, hoverText, actionCounter;
     private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description;
@@ -72,6 +73,10 @@ public class GameManager : MonoBehaviour {
                         Debug.Log("Invalid Tile Selected");
                         return;
                     }
+                    if(GridManager.current.graph[tile.pos.x,tile.pos.z].occupied) {
+                        Debug.Log("There is already a human on this tile.");
+                        return;
+                    }
                     //------------------------------------------------------------------------------------
                     // Pathfinding.
                     //------------------------------------------------------------------------------------
@@ -81,7 +86,9 @@ public class GameManager : MonoBehaviour {
                     } else {
                         actionPoints.Value -= distance;
                         _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
+                        GridManager.current.graph[(int)_selected.transform.position.x,(int)_selected.transform.position.z].occupied = false;
                         _selected.moveHuman(new Vector3(tile.pos.x, 0.6f, tile.pos.z));
+                        GridManager.current.graph[tile.pos.x,tile.pos.z].occupied = true;
                     }
                     //------------------------------------------------------------------------------------
                 // Select the human that was clicked.
@@ -113,10 +120,15 @@ public class GameManager : MonoBehaviour {
             // 2/3 chance to spawn a hazard on top of the protected humans.
             if(dice < 3) {
                 tilePos = getTileStart();
+                while(GridManager.current.graph[tilePos.x, tilePos.y].hazardous) {
+                    tilePos = getTileStart();
+                }
             } else {
-                Debug.Log("Got you now!");
                 Transform target= _protectedHumans[Random.Range(0,_protectedHumans.Count)].transform;
                 tilePos = new Vector2Int((int)target.position.x, (int)target.position.z);
+                while(GridManager.current.graph[tilePos.x, tilePos.y].hazardous) {
+                    tilePos = getTileStart();
+                }
             }
             GameObject hazard = null;
             // Checking if this type of hazard has exceeded the maximum.
@@ -124,13 +136,15 @@ public class GameManager : MonoBehaviour {
             switch(hazardType) {
                 case 0: // Regular 1X1 Tile
                     hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
+                    GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
                     break;
                 case 1: // Long 2x1 Tile
                     neighbors = getSurroundingTiles(tilePos);
                     int tileIndex = Random.Range(0,neighbors.Count);
-                    Debug.Log(neighbors[tileIndex]-tilePos);
                     hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
                     Instantiate(hazardTile, new Vector3(neighbors[tileIndex].x, 0.01f, neighbors[tileIndex].y), Quaternion.Euler(90, 0, 0), hazard.transform);
+                    GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
+                    // GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
                     break;
                 case 2: // Big 2x2 Tile
                     List<Vector2Int> square = new List<Vector2Int>();
@@ -151,14 +165,19 @@ public class GameManager : MonoBehaviour {
         _protectedHumans.Clear();
         for (int i = 0; i < level[currentLevel.Value].humans; i++) {
             Vector2Int tilePos = getTileStart();
+            // If the starting tile is already occupied, then find another tile
+            while(GridManager.current.graph[tilePos.x, tilePos.y].occupied) {
+                tilePos = getTileStart();
+            }
             dice = Random.Range(0,6);
             if(_protectedHumans.Count <= level[currentLevel.Value].maxProtectedHumans) {
                 int dice = Random.Range(0,6);
+                GridManager.current.graph[tilePos.x, tilePos.y].occupied = true;
                 if(dice < 3) {
-                    GameObject human = Instantiate(protectedHuman, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.identity);
+                    GameObject human = Instantiate(protectedHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
                     _protectedHumans.Add(human);
                 } else {
-                    Instantiate(regularHuman, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.identity);
+                    Instantiate(regularHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
                 }
             }
         }
@@ -212,29 +231,7 @@ public class GameManager : MonoBehaviour {
     public void endTurn() {
         _playerTurn.Value = false;
         // Loops through the hazards and checks if a human is standing on top of it.
-        foreach(GameObject hazard in activeHazards) {
-            RaycastHit hitInfo = new RaycastHit();
-            if (Physics.Raycast(hazard.transform.position, transform.TransformDirection(Vector3.up), out hitInfo, 20.0f, LayerMask.GetMask("Human"))) {
-                if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) Debug.LogError("Protected Humn Killed!");
-                Destroy(hitInfo.transform.gameObject);
-                Destroy(hazard);
-            } else {
-                Destroy(hazard);
-            }
-        }
-        activeHazards.Clear();
-        currentTurn.Value++;
-        // Ends the level if the max turn count is exceeded.
-        if (currentTurn.Value > level[currentLevel.Value].turns) {
-            currentLevel.Value++;
-            startLevel();
-        }
-        actionPoints.Value = level[currentLevel.Value].maxActionPoints;
-        _playerTurn.Value = true;
-        _turns.SetText("Turns Remaining: {0}", level[currentLevel.Value].turns - currentTurn.Value);
-        _years.SetText("Years Collected: {0}", years.Value);
-        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
-        setHazard();
+        StartCoroutine(triggerHazards());        
     }
 
     public void startLevel() {
@@ -278,5 +275,34 @@ public class GameManager : MonoBehaviour {
 
     public void quitGame() {
         Application.Quit();
+    }
+
+    public IEnumerator triggerHazards() {
+        foreach(GameObject hazard in activeHazards) {
+            camera.newPosition = new Vector3(hazard.transform.position.x,0f, hazard.transform.position.z);
+            RaycastHit hitInfo = new RaycastHit();
+            yield return new WaitForSeconds(1.5f);
+            if (Physics.Raycast(hazard.transform.position, transform.TransformDirection(Vector3.up), out hitInfo, 20.0f, LayerMask.GetMask("Human"))) {
+                if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) Debug.LogError("Protected Human Killed!");
+                Destroy(hitInfo.transform.gameObject);
+                Destroy(hazard);
+                GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].hazardous = false;
+            } else {
+                Destroy(hazard);
+            }
+        }
+        activeHazards.Clear();
+        currentTurn.Value++;
+        // Ends the level if the max turn count is exceeded.
+        if (currentTurn.Value > level[currentLevel.Value].turns) {
+            currentLevel.Value++;
+            startLevel();
+        }
+        actionPoints.Value = level[currentLevel.Value].maxActionPoints;
+        _playerTurn.Value = true;
+        _turns.SetText("Turns Remaining: {0}", level[currentLevel.Value].turns - currentTurn.Value);
+        _years.SetText("Years Collected: {0}", years.Value);
+        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
+        setHazard();
     }
 }

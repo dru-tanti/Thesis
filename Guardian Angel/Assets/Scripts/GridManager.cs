@@ -12,7 +12,6 @@ public class TileSettings {
     public GameObject tile; // What tile will be placed on the pixel.
 }
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class GridManager : MonoBehaviour {
     public static GridManager current;
    
@@ -21,14 +20,11 @@ public class GridManager : MonoBehaviour {
     
     [Header("Map Generation")]
     [SerializeField] private TileSettings[] _nodeSettings = null;
-    private Vector3[] _vertices;
-    private Mesh _mesh;
 
     [Header("Pathfinding")]
-    private Seeker seeker;
-    public List<Node> currentPath = null;
     public Node[,] graph;
     public bool[,] walkable;
+    private Seeker seeker;
     private int distance = 0;
     private void Awake() {
         if(current == null) {
@@ -53,8 +49,8 @@ public class GridManager : MonoBehaviour {
         }
         int width = GameManager.current.level[currentLevel.Value].map.width;
         int height = GameManager.current.level[currentLevel.Value].map.height;
-        GetComponent<MeshFilter>().mesh = _mesh = new Mesh();
-        _mesh.name = "Map";
+        // GetComponent<MeshFilter>().mesh = _mesh = new Mesh();
+        // _mesh.name = "Map";
         graph = new Node[width,height];
         walkable = new bool[width,height];
         generateMap(width, height);

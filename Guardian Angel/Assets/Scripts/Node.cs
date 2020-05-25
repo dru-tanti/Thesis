@@ -8,9 +8,5 @@ public class Node : MonoBehaviour {
     public List<Node> neighbours;
     public Vector3Int pos;
     public NodeType type;
-
-    public Node() {
-        neighbours = new List<Node>();
-    }
-
+    public bool occupied,hazardous = false;
 }
