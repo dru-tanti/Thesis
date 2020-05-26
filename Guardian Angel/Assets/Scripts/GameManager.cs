@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour {
 
     [Header("Human Prefabs")]
     public List<GameObject> _protectedHumans;
-    public GameObject protectedHuman, regularHuman;
+    public GameObject protectedHuman, regularHuman, deadHuman;
 
     [Header("UI Settings")]
     public CameraController camera;
@@ -283,13 +283,20 @@ public class GameManager : MonoBehaviour {
             RaycastHit hitInfo = new RaycastHit();
             yield return new WaitForSeconds(1.5f);
             if (Physics.Raycast(hazard.transform.position, transform.TransformDirection(Vector3.up), out hitInfo, 20.0f, LayerMask.GetMask("Human"))) {
+                Vector3 humanPos = hitInfo.transform.position;
                 if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) Debug.LogError("Protected Human Killed!");
                 Destroy(hitInfo.transform.gameObject);
+                GameObject dead = Instantiate(deadHuman, humanPos, Quaternion.identity);
+                Rigidbody[] shards = dead.GetComponentsInChildren<Rigidbody>();
+                foreach(Rigidbody shard in shards) {
+                    shard.velocity = new Vector3(Random.Range(0, 5), Random.Range(2, 5), Random.Range(0, 5));                }
+                Destroy(dead, 2f);
                 Destroy(hazard);
-                GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].hazardous = false;
+                GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].occupied = false;
             } else {
                 Destroy(hazard);
             }
+            GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].hazardous = false;
         }
         activeHazards.Clear();
         currentTurn.Value++;
