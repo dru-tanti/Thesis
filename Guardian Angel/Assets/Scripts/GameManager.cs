@@ -77,20 +77,18 @@ public class GameManager : MonoBehaviour {
                         Debug.Log("There is already a human on this tile.");
                         return;
                     }
-                    //------------------------------------------------------------------------------------
-                    // Pathfinding.
-                    //------------------------------------------------------------------------------------
+                    // Retrieves the distance using the A* Pathfinding project.
                     int distance = GridManager.current.findDistance(_selected.transform.position, tile.pos);
                     if((actionPoints.Value - distance) < 0) {
                         Debug.Log("Exceeding number of moves!");
                     } else {
                         actionPoints.Value -= distance;
                         _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
+                        // Sets the current tile to unoccupied and sets the new tile as occipied.
                         GridManager.current.graph[(int)_selected.transform.position.x,(int)_selected.transform.position.z].occupied = false;
                         _selected.moveHuman(new Vector3(tile.pos.x, 0.6f, tile.pos.z));
                         GridManager.current.graph[tile.pos.x,tile.pos.z].occupied = true;
                     }
-                    //------------------------------------------------------------------------------------
                 // Select the human that was clicked.
                 } else if(hit && hitInfo.transform.gameObject.layer == LayerMask.NameToLayer("Human")) {
                     if(!_selected) _selected = hitInfo.transform.gameObject.GetComponent<HumanController>();
@@ -183,6 +181,7 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    // Destroys any active humans to reset the level.
     void clearHumans() {
         GameObject[] humans = GameObject.FindGameObjectsWithTag("Player");
         foreach(GameObject human in humans) {
@@ -256,7 +255,7 @@ public class GameManager : MonoBehaviour {
         hoverText.SetActive(true);
         hoverText.transform.position = Input.mousePosition - new Vector3(-80, -100, 0);
     }
-
+    // Hides the text of the hover box.
     public void hideText() {
         hoverText.SetActive(false);
     }
@@ -279,6 +278,7 @@ public class GameManager : MonoBehaviour {
 
     public IEnumerator triggerHazards() {
         foreach(GameObject hazard in activeHazards) {
+            // Move the camera to every hazard before executing the rest of the code.
             camera.newPosition = new Vector3(hazard.transform.position.x,0f, hazard.transform.position.z);
             RaycastHit hitInfo = new RaycastHit();
             yield return new WaitForSeconds(1.5f);
@@ -286,10 +286,13 @@ public class GameManager : MonoBehaviour {
                 Vector3 humanPos = hitInfo.transform.position;
                 if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) Debug.LogError("Protected Human Killed!");
                 Destroy(hitInfo.transform.gameObject);
+                // If a human is killed, spawn a broken version of the human
                 GameObject dead = Instantiate(deadHuman, humanPos, Quaternion.identity);
                 Rigidbody[] shards = dead.GetComponentsInChildren<Rigidbody>();
+                // Apply a force to the broken pieces in a random direction
                 foreach(Rigidbody shard in shards) {
-                    shard.velocity = new Vector3(Random.Range(0, 5), Random.Range(2, 5), Random.Range(0, 5));                }
+                    shard.velocity = new Vector3(Random.Range(-5, 5), Random.Range(2, 5), Random.Range(-5, 5));
+                }
                 Destroy(dead, 2f);
                 Destroy(hazard);
                 GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].occupied = false;
@@ -305,6 +308,7 @@ public class GameManager : MonoBehaviour {
             currentLevel.Value++;
             startLevel();
         }
+        // Reset the values for the turn and spawn new hazards.
         actionPoints.Value = level[currentLevel.Value].maxActionPoints;
         _playerTurn.Value = true;
         _turns.SetText("Turns Remaining: {0}", level[currentLevel.Value].turns - currentTurn.Value);
