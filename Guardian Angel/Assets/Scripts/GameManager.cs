@@ -37,8 +37,8 @@ public class GameManager : MonoBehaviour {
     [Header("UI Settings")]
     public CameraController camera;
     public bool gamePaused, gameOver = false;
-    public GameObject pauseMenu, gameoverScreen,turnCounter, yearsCounter, hoverText, actionCounter;
-    private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description;
+    public GameObject pauseMenu, gameoverScreen,turnCounter, yearsCounter, listText, hoverText, actionCounter;
+    private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description, _list;
 
     public List<Vector2Int> neighbors;
     private void Awake() {
@@ -56,11 +56,11 @@ public class GameManager : MonoBehaviour {
         _turns = turnCounter.GetComponent<TextMeshProUGUI>();
         _years = yearsCounter.GetComponent<TextMeshProUGUI>();
         _ap = actionCounter.GetComponent<TextMeshProUGUI>();
+        _list = listText.GetComponent<TextMeshProUGUI>();
     }
 
     private void Start() {
         startLevel();
-        setHazard();
         currentLevel.Value = 0;
         years.Value = 0;
         actionPoints.Value = level[currentLevel.Value].maxActionPoints;
@@ -255,6 +255,7 @@ public class GameManager : MonoBehaviour {
 
     public void startLevel() {
         // Resets the turn counter.
+        activeHazards.Clear();
         years.Value = 0;
         currentTurn.Value = 0;
         gameOver = false;
@@ -269,6 +270,12 @@ public class GameManager : MonoBehaviour {
         _turns.SetText("Turns Remaining: {0}", GameManager.current.level[currentLevel.Value].turns - currentTurn.Value);
         _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
         _years.SetText("Years Collected: {0}", years.Value);
+        string nameList = "";
+        for (int i = 0; i < _protectedHumans.Count; i++) {
+            nameList += _protectedHumans[i].name+"\n";
+        }
+        _list.SetText(nameList);
+        setHazard();
     }
 
     // Set the text of the hover box, and display it.
