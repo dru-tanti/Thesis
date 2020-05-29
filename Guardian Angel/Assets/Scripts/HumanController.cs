@@ -11,11 +11,18 @@ public class HumanController : MonoBehaviour {
     public IntVariable years;
     private MeshRenderer _mesh;
     public bool _protected;
-    
+    public string[] traits;
+    public string description;
     private void Awake() {
         _mesh = GetComponent<MeshRenderer>();
         human = (HumanData) ScriptableObject.CreateInstance("HumanData");
         this.state = HumanState.Unselected; 
+    }
+    private void Start() {
+        description = "";
+        foreach(string trait in traits) {
+            description += trait+"\n\n";
+        }
     }
     public void MoveNextTile() {
         if(path.Count == 0) return;
@@ -23,7 +30,7 @@ public class HumanController : MonoBehaviour {
 
     void OnMouseEnter() {
         if(this.state != HumanState.Selected) this.state = HumanState.Hover;
-        GameManager.current.showText("Test Human", human.age, "Testing that this works");
+        GameManager.current.showText(this.gameObject.name, human.age, this.description);
     }
 
     void OnMouseExit() {

@@ -2,6 +2,7 @@
 
 [CreateAssetMenu(fileName = "Human", menuName = "Guardian Angel/Human", order = 0)]
 public class HumanData : ScriptableObject {
+    public string description;
     public int age;
     public int lifeExpectancy;
     private int years;

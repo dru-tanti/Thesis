@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -6,7 +7,14 @@ using UnityAtoms.BaseAtoms;
 using TMPro;
 using GlobalEnums;
 
+// [System.Serializable]
+// public class NameList {
+//     public List<string> names = new List<string>();
+//     public List<string> surnames = new List<string>();
+// }
+
 public class GameManager : MonoBehaviour {
+    
     public static GameManager current;
     [HideInInspector] public HumanController _selected;
     [Header("Level Settings")]
@@ -24,11 +32,12 @@ public class GameManager : MonoBehaviour {
     [Header("Human Prefabs")]
     public List<GameObject> _protectedHumans;
     public GameObject protectedHuman, regularHuman, deadHuman;
+    public NameList list;
 
     [Header("UI Settings")]
     public CameraController camera;
-    public bool gamePaused = false;
-    public GameObject pauseMenu, turnCounter, yearsCounter, hoverText, actionCounter;
+    public bool gamePaused, gameOver = false;
+    public GameObject pauseMenu, gameoverScreen,turnCounter, yearsCounter, hoverText, actionCounter;
     private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description;
 
     public List<Vector2Int> neighbors;
@@ -47,13 +56,13 @@ public class GameManager : MonoBehaviour {
         _turns = turnCounter.GetComponent<TextMeshProUGUI>();
         _years = yearsCounter.GetComponent<TextMeshProUGUI>();
         _ap = actionCounter.GetComponent<TextMeshProUGUI>();
-        currentLevel.Value = 0;
-        years.Value = 0;      
     }
 
     private void Start() {
         startLevel();
         setHazard();
+        currentLevel.Value = 0;
+        years.Value = 0;
         actionPoints.Value = level[currentLevel.Value].maxActionPoints;
         _turns.SetText("Turns Remaining: {0}", GameManager.current.level[currentLevel.Value].turns - currentTurn.Value);
         _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
@@ -99,7 +108,7 @@ public class GameManager : MonoBehaviour {
                 }
             }
         }
-        if(Input.GetKeyDown(KeyCode.Escape)) Pause();
+        if(Input.GetKeyDown(KeyCode.Escape) && !gameOver) Pause();
     }
 
     // Unselects the current human, and selects the new one.
@@ -171,11 +180,22 @@ public class GameManager : MonoBehaviour {
             if(_protectedHumans.Count <= level[currentLevel.Value].maxProtectedHumans) {
                 int dice = Random.Range(0,6);
                 GridManager.current.graph[tilePos.x, tilePos.y].occupied = true;
+                int numTraits = Random.Range(2,4);
                 if(dice < 3) {
                     GameObject human = Instantiate(protectedHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
                     _protectedHumans.Add(human);
+                    human.name = list.names[Random.Range(0,list.names.Length)]+" "+list.surnames[Random.Range(0,list.surnames.Length)];
+                    human.GetComponent<HumanController>().traits = new string[numTraits];
+                    for (int t = 0; t < numTraits; t++) {
+                        human.GetComponent<HumanController>().traits[t] = list.traits[Random.Range(0,list.traits.Length)];
+                    }
                 } else {
-                    Instantiate(regularHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
+                    GameObject human = Instantiate(regularHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
+                    human.name = list.names[Random.Range(0,list.names.Length)]+" "+list.surnames[Random.Range(0,list.surnames.Length)];
+                    human.GetComponent<HumanController>().traits = new string[numTraits];
+                    for (int t = 0; t < numTraits; t++) {
+                        human.GetComponent<HumanController>().traits[t] = list.traits[Random.Range(0,list.traits.Length)];
+                    }
                 }
             }
         }
@@ -235,7 +255,10 @@ public class GameManager : MonoBehaviour {
 
     public void startLevel() {
         // Resets the turn counter.
+        years.Value = 0;
         currentTurn.Value = 0;
+        gameOver = false;
+        gameoverScreen.SetActive(false);
         // Resets the map
         GridManager.current.clearMap();
         GridManager.current.Initialize();
@@ -245,6 +268,7 @@ public class GameManager : MonoBehaviour {
         actionPoints.Value = level[currentLevel.Value].maxActionPoints;
         _turns.SetText("Turns Remaining: {0}", GameManager.current.level[currentLevel.Value].turns - currentTurn.Value);
         _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
+        _years.SetText("Years Collected: {0}", years.Value);
     }
 
     // Set the text of the hover box, and display it.
@@ -253,7 +277,6 @@ public class GameManager : MonoBehaviour {
         hoverText.transform.GetChild(1).GetComponent<TextMeshProUGUI>().SetText("Age: {0}", age);
         hoverText.transform.GetChild(2).GetComponent<TextMeshProUGUI>().SetText(description);
         hoverText.SetActive(true);
-        hoverText.transform.position = Input.mousePosition - new Vector3(-80, -100, 0);
     }
     // Hides the text of the hover box.
     public void hideText() {
@@ -284,7 +307,12 @@ public class GameManager : MonoBehaviour {
             yield return new WaitForSeconds(1.5f);
             if (Physics.Raycast(hazard.transform.position, transform.TransformDirection(Vector3.up), out hitInfo, 20.0f, LayerMask.GetMask("Human"))) {
                 Vector3 humanPos = hitInfo.transform.position;
-                if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) Debug.LogError("Protected Human Killed!");
+                if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) {
+                    Debug.LogError("Protected Human Killed!");
+                    gameoverScreen.SetActive(true);
+                    gamePaused = true;
+                    gameOver = true;
+                }
                 Destroy(hitInfo.transform.gameObject);
                 // If a human is killed, spawn a broken version of the human
                 GameObject dead = Instantiate(deadHuman, humanPos, Quaternion.identity);

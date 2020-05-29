@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b87c0836b7b4db49b369facfb6dbd3d, type: 3}
+  m_Name: NameList
+  m_EditorClassIdentifier: 
+  names:
+  - Liam
+  - Noah
+  - Will
+  - James
+  - Oliver
+  - Ben
+  - Joseph
+  - Lucas
+  - Mason
+  - Logan
+  - Andrew
+  - Chris
+  - Fabian
+  - Jeff
+  - Fabio
+  - Daniel
+  - Tim
+  - Mark
+  - Derek
+  - Michael
+  - Adrian
+  - Maria
+  - Emma
+  - Ava
+  - Kirsty
+  - Sophia
+  - Michela
+  - Isabelle
+  - Victoria
+  - Mia
+  - Amelia
+  - Harper
+  - Zendaya
+  - Chloe
+  - Debby
+  - Mildred
+  - Ruth
+  - Rachel
+  - Kim
+  - Elizabeth
+  surnames:
+  - Smith
+  - Williams
+  - Borg
+  - Brown
+  - Miller
+  - Wilson
+  - Taylor
+  - Harris
+  - Martin
+  - Lee
+  - Garcia
+  - Wright
+  - Hill
+  - Nelson
+  - parker
+  - Evans
+  - Rogers
+  - Wood
+  - Galea
+  - Sant
+  - Delia
+  - Muscat
+  - Griffin
+  - Diaz
+  - Crawford
+  - Simposn
+  - Webb
+  - Warren
+  - Willis
+  - Stone
+  traits:
+  - Likes dogs
+  - Likes cats
+  - Hates dogs
+  - Hates cats
+  - Puts milk before cereal
+  - Takes tea with too much milk
+  - Vegaterian
+  - Vegan
+  - Volunteers
+  - Sex Addict
+  - Psychotic
+  - Manipulative
+  - Sleeps Around
+  - Racist
+  - Mysogynistic
+  - Hopeless Romantic
+  - Gamer
+  - Likes Gardening
+  - Cooks
+  - Lawyer
+  - Got away with Murder
+  - Member of Biker Gang
+  - Shoplifts
+  - Has kids
+  - Hates kids
+  - Married
+  - Single
+  - Divorced
+  - Lives Alone
+  - Lives with parents
+  - Lives with partner
+  - Against Abortion
+  - Smokes
+  - Drug user
+  - Alcoholic
+  - Gives to Charity
+  - Robbed a store
+  - Sold drugs
+  - 'Enjoys '
+  - Doctor
+  - Engineer
+  - Unemployed
+  - Homeless
+  - Fire Fighter
+  - Police Officer
+  - Thinks Facism is neat
+  - Thinks Communism is neat
+  - Kinda idolises Hitler
+  - In debt
+  - Psychologist
+  - Professor
+  - Arrogant
+  - Drives a hybrid
+  - Regularly Litters
+  - Writes clickbait articles
+  - Retail Worker
+  - Chef
+  - Waiter
+  - University drop-out
+  - Hates Parents
