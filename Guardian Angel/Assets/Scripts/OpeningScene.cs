@@ -5,13 +5,10 @@ using UnityEngine.SceneManagement;
 
 // Probably the least efficient way to animate text in the history of game dev
 public class OpeningScene : MonoBehaviour {
-    public GameObject first;
-    public GameObject second;
-    public GameObject third;
-    public GameObject fourth;
-    public GameObject fifth;
-    public GameObject sixth;
-    public bool next = false;
+    // Animated Text
+    public GameObject first, second, third;
+    // Tutorial.
+    public GameObject fourth, fifth, sixth, seventh, eighth, ninth;
     private void Start() {
         first.SetActive(true);
         second.SetActive(false);
@@ -19,10 +16,9 @@ public class OpeningScene : MonoBehaviour {
         fourth.SetActive(false);
         fifth.SetActive(false);
         sixth.SetActive(false);
-        next = false;
+        AudioManager.current.Play("Opening");
     }
     private void Update() {
-        if(Input.anyKeyDown) next = true;
         if(first.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Finished")) {
             first.SetActive(false);
             second.SetActive(true);
@@ -33,18 +29,48 @@ public class OpeningScene : MonoBehaviour {
         }
         if(third.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Finished")) {
             third.SetActive(false);
-            fourth.SetActive(true);
+            showFourth();
         }
+    }
+
+    public void showFourth() {
+        fourth.SetActive(true);
+        fifth.SetActive(false);
+        sixth.SetActive(false);
+        seventh.SetActive(false);
+        eighth.SetActive(false);
     }
 
     public void showFifth() {
         fourth.SetActive(false);
         fifth.SetActive(true);
+        sixth.SetActive(false);
+        seventh.SetActive(false);
+        eighth.SetActive(false);
     }
 
     public void showSixth() {
+        fourth.SetActive(false);
         fifth.SetActive(false);
         sixth.SetActive(true);
+        seventh.SetActive(false);
+        eighth.SetActive(false);
+    }
+
+    public void showSeventh() {
+        fourth.SetActive(false);
+        fifth.SetActive(false);
+        sixth.SetActive(false);
+        seventh.SetActive(true);
+        eighth.SetActive(false);
+    }
+
+    public void showEighth() {
+        fourth.SetActive(false);
+        fifth.SetActive(false);
+        sixth.SetActive(false);
+        seventh.SetActive(false);
+        eighth.SetActive(true);
     }
 
     public void startGame() {

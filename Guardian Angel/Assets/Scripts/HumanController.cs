@@ -11,7 +11,7 @@ public class HumanController : MonoBehaviour {
     public IntVariable years;
     private MeshRenderer _mesh;
     public bool _protected;
-    public string[] traits;
+    public List<string> traits;
     public string description;
     private void Awake() {
         _mesh = GetComponent<MeshRenderer>();
@@ -59,6 +59,8 @@ public class HumanController : MonoBehaviour {
     public void moveHuman(Vector3 pos) {
         if(this.state != HumanState.Selected) return;
         this.transform.position = pos;
+        GameManager.current.updateList();
+        AudioManager.current.Play("Step");
     }
 
     private void OnDestroy() {

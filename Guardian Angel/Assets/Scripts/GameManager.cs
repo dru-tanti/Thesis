@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
+using UnityEngine.UI;
 using UnityAtoms.BaseAtoms;
 using TMPro;
 using GlobalEnums;
@@ -16,6 +16,7 @@ using GlobalEnums;
 public class GameManager : MonoBehaviour {
     
     public static GameManager current;
+    public CameraController camera;
     [HideInInspector] public HumanController _selected;
     [Header("Level Settings")]
     public LevelSettings[] level; 
@@ -35,10 +36,11 @@ public class GameManager : MonoBehaviour {
     public NameList list;
 
     [Header("UI Settings")]
-    public CameraController camera;
+    public LifeForce yearsCounter;
+    public Color safe, danger;
     public bool gamePaused, gameOver = false;
-    public GameObject pauseMenu, gameoverScreen,turnCounter, yearsCounter, listText, hoverText, actionCounter;
-    private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description, _list;
+    public GameObject pauseMenu, gameoverScreen,turnCounter, listText, hoverText, actionCounter;
+    private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description, _list, _gameOverText;
 
     public List<Vector2Int> neighbors;
     private void Awake() {
@@ -54,9 +56,9 @@ public class GameManager : MonoBehaviour {
         // TODO: Move to seperate script.
         // Gets refernce to UI elements
         _turns = turnCounter.GetComponent<TextMeshProUGUI>();
-        _years = yearsCounter.GetComponent<TextMeshProUGUI>();
         _ap = actionCounter.GetComponent<TextMeshProUGUI>();
         _list = listText.GetComponent<TextMeshProUGUI>();
+        _gameOverText = gameoverScreen.GetComponentInChildren<TextMeshProUGUI>();
     }
 
     private void Start() {
@@ -65,7 +67,7 @@ public class GameManager : MonoBehaviour {
         years.Value = 0;
         actionPoints.Value = level[currentLevel.Value].maxActionPoints;
         _turns.SetText("Turns Remaining: {0}", GameManager.current.level[currentLevel.Value].turns - currentTurn.Value);
-        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
+        _ap.SetText("Moves Remaining: {0}", actionPoints.Value);
     }
 
     void Update () {
@@ -92,7 +94,7 @@ public class GameManager : MonoBehaviour {
                         Debug.Log("Exceeding number of moves!");
                     } else {
                         actionPoints.Value -= distance;
-                        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
+                        _ap.SetText("Moves Remaining: {0}", actionPoints.Value);
                         // Sets the current tile to unoccupied and sets the new tile as occipied.
                         GridManager.current.graph[(int)_selected.transform.position.x,(int)_selected.transform.position.z].occupied = false;
                         _selected.moveHuman(new Vector3(tile.pos.x, 0.6f, tile.pos.z));
@@ -109,6 +111,7 @@ public class GameManager : MonoBehaviour {
             }
         }
         if(Input.GetKeyDown(KeyCode.Escape) && !gameOver) Pause();
+        if(gameOver) StopAllCoroutines();
     }
 
     // Unselects the current human, and selects the new one.
@@ -120,7 +123,7 @@ public class GameManager : MonoBehaviour {
 
     // Selects a random position and places a Hazard tile.
     private void setHazard() {
-        for (int i = 0; i < Random.Range(1, level[currentLevel.Value].maxHazards); i++) {
+        for (int i = 0; i < Random.Range(level[currentLevel.Value].minHazards, level[currentLevel.Value].maxHazards); i++) {
             dice = Random.Range(0,6);
             int hazardType = Random.Range(0,2);
             Vector2Int tilePos;
@@ -166,7 +169,7 @@ public class GameManager : MonoBehaviour {
             activeHazards.Add(hazard);
         }
     }
-
+    
     // Instantiates the Humans and sets their positions
     void setHuman() {
         _protectedHumans.Clear();
@@ -180,22 +183,33 @@ public class GameManager : MonoBehaviour {
             if(_protectedHumans.Count <= level[currentLevel.Value].maxProtectedHumans) {
                 int dice = Random.Range(0,6);
                 GridManager.current.graph[tilePos.x, tilePos.y].occupied = true;
-                int numTraits = Random.Range(2,4);
                 if(dice < 3) {
                     GameObject human = Instantiate(protectedHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
                     _protectedHumans.Add(human);
                     human.name = list.names[Random.Range(0,list.names.Length)]+" "+list.surnames[Random.Range(0,list.surnames.Length)];
-                    human.GetComponent<HumanController>().traits = new string[numTraits];
-                    for (int t = 0; t < numTraits; t++) {
-                        human.GetComponent<HumanController>().traits[t] = list.traits[Random.Range(0,list.traits.Length)];
-                    }
+                    human.GetComponent<HumanController>().traits = new List<string>();
+                    for (int t = 0; t < Random.Range(2,4); t++) {
+                        string selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
+                        while(human.GetComponent<HumanController>().traits.Contains(selectedTrait)) {
+                            selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
+                        }
+                        human.GetComponent<HumanController>().traits.Add(selectedTrait);
+                    } 
                 } else {
                     GameObject human = Instantiate(regularHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
                     human.name = list.names[Random.Range(0,list.names.Length)]+" "+list.surnames[Random.Range(0,list.surnames.Length)];
-                    human.GetComponent<HumanController>().traits = new string[numTraits];
-                    for (int t = 0; t < numTraits; t++) {
-                        human.GetComponent<HumanController>().traits[t] = list.traits[Random.Range(0,list.traits.Length)];
+                    // human.GetComponent<HumanController>().traits = new string[numTraits];
+                    human.GetComponent<HumanController>().traits = new List<string>();
+                    for (int t = 0; t < Random.Range(2,4); t++) {
+                        string selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
+                        while(human.GetComponent<HumanController>().traits.Contains(selectedTrait)) {
+                            selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
+                        }
+                        human.GetComponent<HumanController>().traits.Add(selectedTrait);
                     }
+                    // for (int t = 0; t < numTraits; t++) {
+                    //     human.GetComponent<HumanController>().traits[t] = list.traits[Random.Range(0,list.traits.Length)];
+                    // }
                 }
             }
         }
@@ -249,6 +263,10 @@ public class GameManager : MonoBehaviour {
 
     public void endTurn() {
         _playerTurn.Value = false;
+        if(_selected) {
+            _selected.state = HumanState.Unselected;
+            _selected = null;
+        }
         // Loops through the hazards and checks if a human is standing on top of it.
         StartCoroutine(triggerHazards());        
     }
@@ -268,14 +286,18 @@ public class GameManager : MonoBehaviour {
         setHuman();
         actionPoints.Value = level[currentLevel.Value].maxActionPoints;
         _turns.SetText("Turns Remaining: {0}", GameManager.current.level[currentLevel.Value].turns - currentTurn.Value);
-        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
-        _years.SetText("Years Collected: {0}", years.Value);
-        string nameList = "";
-        for (int i = 0; i < _protectedHumans.Count; i++) {
-            nameList += _protectedHumans[i].name+"\n";
-        }
-        _list.SetText(nameList);
+        _ap.SetText("Moves Remaining: {0}", actionPoints.Value);
+        yearsCounter.SetValue(years.Value);
+        // _years.SetText("Years Collected: {0}", years.Value);
+        // string nameList = "";
+        // for (int i = 0; i < _protectedHumans.Count; i++) {
+        //     nameList += _protectedHumans[i].name+"\n";
+        // }
+        // _list.SetText(nameList);
         setHazard();
+        updateList();
+        _playerTurn.Value = true;
+        AudioManager.current.Play("Ambient");
     }
 
     // Set the text of the hover box, and display it.
@@ -307,48 +329,87 @@ public class GameManager : MonoBehaviour {
     }
 
     public IEnumerator triggerHazards() {
-        foreach(GameObject hazard in activeHazards) {
+        foreach(GameObject hazard in activeHazards) {       
             // Move the camera to every hazard before executing the rest of the code.
             camera.newPosition = new Vector3(hazard.transform.position.x,0f, hazard.transform.position.z);
             RaycastHit hitInfo = new RaycastHit();
             yield return new WaitForSeconds(1.5f);
+            GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].hazardous = false;
             if (Physics.Raycast(hazard.transform.position, transform.TransformDirection(Vector3.up), out hitInfo, 20.0f, LayerMask.GetMask("Human"))) {
-                Vector3 humanPos = hitInfo.transform.position;
-                if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) {
-                    Debug.LogError("Protected Human Killed!");
-                    gameoverScreen.SetActive(true);
-                    gamePaused = true;
-                    gameOver = true;
+                destroyHuman(hitInfo, hazard);
+                if(hazard.transform.childCount > 0) {
+                    if(Physics.Raycast(hazard.transform.GetChild(0).position, transform.GetChild(0).TransformDirection(Vector3.up), out hitInfo, 20.0f, LayerMask.GetMask("Human"))) {
+                        destroyHuman(hitInfo, hazard);
+                    }
                 }
-                Destroy(hitInfo.transform.gameObject);
-                // If a human is killed, spawn a broken version of the human
-                GameObject dead = Instantiate(deadHuman, humanPos, Quaternion.identity);
-                Rigidbody[] shards = dead.GetComponentsInChildren<Rigidbody>();
-                // Apply a force to the broken pieces in a random direction
-                foreach(Rigidbody shard in shards) {
-                    shard.velocity = new Vector3(Random.Range(-5, 5), Random.Range(2, 5), Random.Range(-5, 5));
-                }
-                Destroy(dead, 2f);
+                yield return new WaitForSeconds(1f);
                 Destroy(hazard);
-                GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].occupied = false;
             } else {
                 Destroy(hazard);
             }
-            GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].hazardous = false;
         }
         activeHazards.Clear();
         currentTurn.Value++;
         // Ends the level if the max turn count is exceeded.
         if (currentTurn.Value > level[currentLevel.Value].turns) {
             currentLevel.Value++;
+            if(years.Value < 500) {
+                setGameOver("You didn't collect enough life force. Looks like you have more work to do...");
+            } else {
+                setGameOver("Well done, you managed to pay me back. Hope the others don't find out...");
+            }
             startLevel();
         }
         // Reset the values for the turn and spawn new hazards.
         actionPoints.Value = level[currentLevel.Value].maxActionPoints;
         _playerTurn.Value = true;
         _turns.SetText("Turns Remaining: {0}", level[currentLevel.Value].turns - currentTurn.Value);
-        _years.SetText("Years Collected: {0}", years.Value);
-        _ap.SetText("Action Points Remaining: {0}", actionPoints.Value);
+        // _years.SetText("Years Collected: {0}", years.Value);
+        _ap.SetText("Moves Remaining: {0}", actionPoints.Value);
         setHazard();
+        updateList();
+    }
+
+    public void setGameOver(string gameOverText) {
+        gameoverScreen.SetActive(true);
+        _gameOverText.SetText(gameOverText);
+        gamePaused = true;
+        gameOver = true;
+    }
+
+    public void destroyHuman(RaycastHit hitInfo, GameObject hazard) {
+        bool protectedHumanKilled = false;
+        Vector3 humanPos = hitInfo.transform.position;
+        if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) protectedHumanKilled = true;
+        Destroy(hitInfo.transform.gameObject);
+        AudioManager.current.Play("Kill");
+        yearsCounter.SetValue(years.Value);
+        // If a human is killed, spawn a broken version of the human
+        GameObject dead = Instantiate(deadHuman, humanPos, Quaternion.identity);
+        Rigidbody[] shards = dead.GetComponentsInChildren<Rigidbody>();
+        // Apply a force to the broken pieces in a random direction
+        foreach(Rigidbody shard in shards) {
+            shard.velocity = new Vector3(Random.Range(-5, 5), Random.Range(2, 5), Random.Range(-5, 5));
+        }
+        Destroy(dead, 2f);
+        if(protectedHumanKilled) {
+            Debug.LogError("Protected Human Killed!");
+            AudioManager.current.Play("GameOver");
+            setGameOver("One of the humans you were meant to protect died. Can't pay me back if the others find out...");
+        }
+    }
+
+    public void updateList() {
+        for (int i = 0; i < _protectedHumans.Count; i++) {
+            TextMeshProUGUI lineText = listText.transform.GetChild(i).GetComponent<TextMeshProUGUI>();
+            lineText.SetText(_protectedHumans[i].name);
+            if(GridManager.current.graph[(int)_protectedHumans[i].transform.position.x,(int)_protectedHumans[i].transform.position.z].hazardous) {
+                lineText.fontStyle = FontStyles.Bold;
+                lineText.color = danger;
+            } else {
+                lineText.fontStyle = FontStyles.Normal;
+                lineText.color = safe;
+            }
+        }
     }
 }

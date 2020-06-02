@@ -17,4 +17,5 @@ MonoBehaviour:
   maxProtectedHumans: 5
   turns: 10
   maxActionPoints: 20
+  minHazards: 40
   maxHazards: 50

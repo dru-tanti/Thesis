@@ -25,7 +25,6 @@ public class GridManager : MonoBehaviour {
     public Node[,] graph;
     public bool[,] walkable;
     private Seeker seeker;
-    private int distance = 0;
     private void Awake() {
         if(current == null) {
             current = this;
@@ -35,10 +34,6 @@ public class GridManager : MonoBehaviour {
             return;
         }
         seeker = GetComponent<Seeker>();
-    }
-    private void Update() {
-        // for (int i = 0; i < path.corners.Length - 1; i++)
-        //     Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.red);
     }
 
     // Generates the map depending on the Level Settings Scriptable Object.

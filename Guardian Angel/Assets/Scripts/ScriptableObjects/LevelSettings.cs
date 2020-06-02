@@ -7,5 +7,6 @@ public class LevelSettings : ScriptableObject {
     public int maxProtectedHumans;
     public int turns;
     public int maxActionPoints;
+    public int minHazards;
     public int maxHazards;
 }

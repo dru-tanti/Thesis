@@ -8,8 +8,10 @@ public class CameraController : MonoBehaviour {
     public float movementTime;
     public float rotation;
     public float zoomSpeedMultiplier = 100;
-    public float maxZoom = 400f;
-    public float minZoom = 20f;
+    public Vector3 maxZoom;
+    public Vector3 minZoom;
+    // public float maxZoom = 400f;
+    // public float minZoom = 20f;
     public Vector3 newPosition;
     public Vector3 zoomAmount;
     public Quaternion newRotation;
@@ -28,14 +30,15 @@ public class CameraController : MonoBehaviour {
     void mouseInput() {
         if(Input.mouseScrollDelta.y != 0) {
             newZoom += Input.mouseScrollDelta.y * zoomAmount;
-            if(newZoom.y > maxZoom) {
-                newZoom.y = maxZoom;
-                newZoom.z = -maxZoom/2;
-            } else if(newZoom.y < minZoom) {
-                newZoom.y = minZoom;
-                newZoom.z = -minZoom/2;
+            if(newZoom.y > maxZoom.y) {
+                newZoom.y = maxZoom.y;
+                newZoom.z = maxZoom.z;
+            } else if(newZoom.y < minZoom.y) {
+                newZoom.y = minZoom.y;
+                newZoom.z = minZoom.z;
             }
             movementSpeed = newZoom.y / zoomSpeedMultiplier;
+            AudioManager.current.updateVolume("Ambient", Input.mouseScrollDelta.y/30);
         }
     }
 
