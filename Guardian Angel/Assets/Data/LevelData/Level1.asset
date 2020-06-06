@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Level1
   m_EditorClassIdentifier: 
   map: {fileID: 2800000, guid: 4110ce282886f4149a35b6d04a29db3a, type: 3}
-  humans: 40
+  humans: 60
   maxProtectedHumans: 5
-  turns: 10
+  turns: 6
+  turnTime: 120
   maxActionPoints: 20
   minHazards: 40
   maxHazards: 50

@@ -29,6 +29,8 @@ public class GameManager : MonoBehaviour {
     public BoolVariable _playerTurn;
     public IntVariable years, currentTurn, currentLevel, actionPoints;
     private int dice;
+    [SerializeField] private float timer;
+    private bool playBeat;
 
     [Header("Human Prefabs")]
     public List<GameObject> _protectedHumans;
@@ -39,8 +41,8 @@ public class GameManager : MonoBehaviour {
     public LifeForce yearsCounter;
     public Color safe, danger;
     public bool gamePaused, gameOver = false;
-    public GameObject pauseMenu, gameoverScreen,turnCounter, listText, hoverText, actionCounter;
-    private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description, _list, _gameOverText;
+    public GameObject pauseMenu, gameoverScreen,turnCounter, listText, hoverText, actionCounter, timerText;
+    private TextMeshProUGUI _turns, _years, _ap, _name, _age, _description, _list, _gameOverText, _timer;
 
     public List<Vector2Int> neighbors;
     private void Awake() {
@@ -59,6 +61,7 @@ public class GameManager : MonoBehaviour {
         _ap = actionCounter.GetComponent<TextMeshProUGUI>();
         _list = listText.GetComponent<TextMeshProUGUI>();
         _gameOverText = gameoverScreen.GetComponentInChildren<TextMeshProUGUI>();
+        _timer = timerText.GetComponentInChildren<TextMeshProUGUI>();
     }
 
     private void Start() {
@@ -72,6 +75,13 @@ public class GameManager : MonoBehaviour {
 
     void Update () {
         if(_playerTurn.Value) {
+            timer -= Time.deltaTime;
+            _timer.SetText("Time Remaining: "+Mathf.RoundToInt(timer));
+            if(timer < 10 && !playBeat) {
+                playBeat = true;
+                AudioManager.current.Play("Beat");
+            }
+            if(timer < 0) endTurn();
             // Then the LMB is clicked, raycast to check what has been hit.
             if(Input.GetMouseButtonDown(0)) {
                 RaycastHit hitInfo = new RaycastHit();
@@ -143,28 +153,30 @@ public class GameManager : MonoBehaviour {
             GameObject hazard = null;
             // Checking if this type of hazard has exceeded the maximum.
             // if(level[currentLevel.Value].maxHazardType[hazardType] > )
-            switch(hazardType) {
-                case 0: // Regular 1X1 Tile
-                    hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
-                    GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
-                    break;
-                case 1: // Long 2x1 Tile
-                    neighbors = getSurroundingTiles(tilePos);
-                    int tileIndex = Random.Range(0,neighbors.Count);
-                    hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
-                    Instantiate(hazardTile, new Vector3(neighbors[tileIndex].x, 0.01f, neighbors[tileIndex].y), Quaternion.Euler(90, 0, 0), hazard.transform);
-                    GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
-                    // GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
-                    break;
-                case 2: // Big 2x2 Tile
-                    List<Vector2Int> square = new List<Vector2Int>();
-                    neighbors = getSurroundingTiles(tilePos);
-                    if(neighbors.Count < 2) {
+            hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
+            GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
+            // switch(hazardType) {
+            //     case 0: // Regular 1X1 Tile
+            //         hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
+            //         GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
+            //         break;
+            //     case 1: // Long 2x1 Tile
+            //         neighbors = getSurroundingTiles(tilePos);
+            //         int tileIndex = Random.Range(0,neighbors.Count);
+            //         hazard = Instantiate(hazardTile, new Vector3(tilePos.x, 0.01f, tilePos.y), Quaternion.Euler(90, 0, 0));
+            //         Instantiate(hazardTile, new Vector3(neighbors[tileIndex].x, 0.01f, neighbors[tileIndex].y), Quaternion.Euler(90, 0, 0), hazard.transform);
+            //         GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
+            //         // GridManager.current.graph[tilePos.x,tilePos.y].hazardous = true;
+            //         break;
+            //     case 2: // Big 2x2 Tile
+            //         List<Vector2Int> square = new List<Vector2Int>();
+            //         neighbors = getSurroundingTiles(tilePos);
+            //         if(neighbors.Count < 2) {
 
-                    }
-                    Debug.Log("BigTile!");
-                    break;
-            }
+            //         }
+            //         Debug.Log("BigTile!");
+            //         break;
+            // }
             // Adds the newly created hazard to the list.
             activeHazards.Add(hazard);
         }
@@ -180,37 +192,35 @@ public class GameManager : MonoBehaviour {
                 tilePos = getTileStart();
             }
             dice = Random.Range(0,6);
-            if(_protectedHumans.Count <= level[currentLevel.Value].maxProtectedHumans) {
-                int dice = Random.Range(0,6);
+            if(_protectedHumans.Count <= level[currentLevel.Value].maxProtectedHumans && dice < 3) {
+                // int dice = Random.Range(0,6);
                 GridManager.current.graph[tilePos.x, tilePos.y].occupied = true;
-                if(dice < 3) {
-                    GameObject human = Instantiate(protectedHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
-                    _protectedHumans.Add(human);
-                    human.name = list.names[Random.Range(0,list.names.Length)]+" "+list.surnames[Random.Range(0,list.surnames.Length)];
-                    human.GetComponent<HumanController>().traits = new List<string>();
-                    for (int t = 0; t < Random.Range(2,4); t++) {
-                        string selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
-                        while(human.GetComponent<HumanController>().traits.Contains(selectedTrait)) {
-                            selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
-                        }
-                        human.GetComponent<HumanController>().traits.Add(selectedTrait);
-                    } 
-                } else {
-                    GameObject human = Instantiate(regularHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
-                    human.name = list.names[Random.Range(0,list.names.Length)]+" "+list.surnames[Random.Range(0,list.surnames.Length)];
-                    // human.GetComponent<HumanController>().traits = new string[numTraits];
-                    human.GetComponent<HumanController>().traits = new List<string>();
-                    for (int t = 0; t < Random.Range(2,4); t++) {
-                        string selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
-                        while(human.GetComponent<HumanController>().traits.Contains(selectedTrait)) {
-                            selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
-                        }
-                        human.GetComponent<HumanController>().traits.Add(selectedTrait);
+                GameObject human = Instantiate(protectedHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
+                _protectedHumans.Add(human);
+                human.name = list.names[Random.Range(0,list.names.Length)]+" "+list.surnames[Random.Range(0,list.surnames.Length)];
+                human.GetComponent<HumanController>().traits = new List<string>();
+                for (int t = 0; t < Random.Range(2,4); t++) {
+                    string selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
+                    while(human.GetComponent<HumanController>().traits.Contains(selectedTrait)) {
+                        selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
                     }
-                    // for (int t = 0; t < numTraits; t++) {
-                    //     human.GetComponent<HumanController>().traits[t] = list.traits[Random.Range(0,list.traits.Length)];
-                    // }
+                    human.GetComponent<HumanController>().traits.Add(selectedTrait);
+                }   
+            } else {
+                GameObject human = Instantiate(regularHuman, new Vector3(tilePos.x, 0.6f, tilePos.y), Quaternion.identity);
+                human.name = list.names[Random.Range(0,list.names.Length)]+" "+list.surnames[Random.Range(0,list.surnames.Length)];
+                // human.GetComponent<HumanController>().traits = new string[numTraits];
+                human.GetComponent<HumanController>().traits = new List<string>();
+                for (int t = 0; t < Random.Range(2,4); t++) {
+                    string selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
+                    while(human.GetComponent<HumanController>().traits.Contains(selectedTrait)) {
+                        selectedTrait = list.traits[Random.Range(0,list.traits.Length)];
+                    }
+                    human.GetComponent<HumanController>().traits.Add(selectedTrait);
                 }
+                // for (int t = 0; t < numTraits; t++) {
+                //     human.GetComponent<HumanController>().traits[t] = list.traits[Random.Range(0,list.traits.Length)];
+                // }
             }
         }
     }
@@ -269,6 +279,8 @@ public class GameManager : MonoBehaviour {
         }
         // Loops through the hazards and checks if a human is standing on top of it.
         StartCoroutine(triggerHazards());        
+        timer = level[currentLevel.Value].turnTime;
+        playBeat = false;
     }
 
     public void startLevel() {
@@ -298,6 +310,7 @@ public class GameManager : MonoBehaviour {
         updateList();
         _playerTurn.Value = true;
         AudioManager.current.Play("Ambient");
+        timer = level[currentLevel.Value].turnTime;
     }
 
     // Set the text of the hover box, and display it.
@@ -330,18 +343,22 @@ public class GameManager : MonoBehaviour {
 
     public IEnumerator triggerHazards() {
         foreach(GameObject hazard in activeHazards) {       
-            // Move the camera to every hazard before executing the rest of the code.
-            camera.newPosition = new Vector3(hazard.transform.position.x,0f, hazard.transform.position.z);
             RaycastHit hitInfo = new RaycastHit();
-            yield return new WaitForSeconds(1.5f);
             GridManager.current.graph[(int)hazard.transform.position.x,(int)hazard.transform.position.z].hazardous = false;
             if (Physics.Raycast(hazard.transform.position, transform.TransformDirection(Vector3.up), out hitInfo, 20.0f, LayerMask.GetMask("Human"))) {
-                destroyHuman(hitInfo, hazard);
-                if(hazard.transform.childCount > 0) {
-                    if(Physics.Raycast(hazard.transform.GetChild(0).position, transform.GetChild(0).TransformDirection(Vector3.up), out hitInfo, 20.0f, LayerMask.GetMask("Human"))) {
-                        destroyHuman(hitInfo, hazard);
-                    }
-                }
+                // Move the camera to every hazard before executing the rest of the code.
+                camera.newPosition = new Vector3(hazard.transform.position.x,0f, hazard.transform.position.z);
+                yield return new WaitForSeconds(1.5f);
+                destroyHuman(hitInfo);
+                // if(hazard.transform.childCount > 0) {
+                //     RaycastHit hitInfoChild = new RaycastHit();
+                //     Debug.Log("Shooting raycast from " +hazard.transform.GetChild(0).position);
+                //     Debug.DrawRay(hazard.transform.GetChild(0).position, hazard.transform.GetChild(0).TransformDirection(Vector3.up) * 20f, Color.blue);
+                //     if(Physics.Raycast(hazard.transform.GetChild(0).position, hazard.transform.GetChild(0).TransformDirection(Vector3.up), out hitInfoChild, 20.0f, LayerMask.GetMask("Human"))) {
+                //         Debug.Log("Using child to kill the human at "+hazard.transform.GetChild(0).position);
+                //         destroyHuman(hitInfoChild);
+                //     }
+                // }
                 yield return new WaitForSeconds(1f);
                 Destroy(hazard);
             } else {
@@ -352,13 +369,13 @@ public class GameManager : MonoBehaviour {
         currentTurn.Value++;
         // Ends the level if the max turn count is exceeded.
         if (currentTurn.Value > level[currentLevel.Value].turns) {
-            currentLevel.Value++;
-            if(years.Value < 500) {
+            if(years.Value < 200) {
                 setGameOver("You didn't collect enough life force. Looks like you have more work to do...");
             } else {
                 setGameOver("Well done, you managed to pay me back. Hope the others don't find out...");
+                // currentLevel.Value++;
             }
-            startLevel();
+            // startLevel();
         }
         // Reset the values for the turn and spawn new hazards.
         actionPoints.Value = level[currentLevel.Value].maxActionPoints;
@@ -377,10 +394,11 @@ public class GameManager : MonoBehaviour {
         gameOver = true;
     }
 
-    public void destroyHuman(RaycastHit hitInfo, GameObject hazard) {
+    public void destroyHuman(RaycastHit hitInfo) {
         bool protectedHumanKilled = false;
         Vector3 humanPos = hitInfo.transform.position;
         if(hitInfo.transform.gameObject.GetComponent<HumanController>()._protected) protectedHumanKilled = true;
+        years.Value += hitInfo.transform.gameObject.GetComponent<HumanController>().yearsToCollect;
         Destroy(hitInfo.transform.gameObject);
         AudioManager.current.Play("Kill");
         yearsCounter.SetValue(years.Value);

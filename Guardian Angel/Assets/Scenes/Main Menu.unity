@@ -793,7 +793,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 500, y: 50}
+  m_SizeDelta: {x: 550, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &251339154
 MonoBehaviour:
@@ -814,7 +814,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 'Hazards can spawn on the humans you need to protect. Move them off the
-    hazard to protect them. '
+    hazard to protect them.
+
+    And make sure to watch the clock. If you run out
+    of time, your turn ends automatically.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 56a4bbe3628e0fa4792b9158f5cde3cc, type: 2}
   m_sharedMaterial: {fileID: -9149925261101207736, guid: 56a4bbe3628e0fa4792b9158f5cde3cc,
@@ -884,12 +887,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 251339154}
-    characterCount: 95
+    characterCount: 182
     spriteCount: 0
-    spaceCount: 18
-    wordCount: 18
+    spaceCount: 34
+    wordCount: 35
     linkCount: 0
-    lineCount: 3
+    lineCount: 4
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -1269,7 +1272,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 436915685}
-    characterCount: 4
+    characterCount: 5
     spriteCount: 0
     spaceCount: 0
     wordCount: 1
@@ -5527,11 +5530,11 @@ MonoBehaviour:
   sounds:
   - name: Opening
     clip: {fileID: 8300000, guid: 017e07fc4a09bc24aa5e71b0594b9ece, type: 3}
-    volume: 0.5
+    volume: 0.3
     volumeVariance: 0
     pitch: 1
     pitchVariance: 0
-    loop: 0
+    loop: 1
     source: {fileID: 0}
   - name: GameOver
     clip: {fileID: 8300000, guid: ce6c8292a8891bd4c9ac78795b8af361, type: 3}
@@ -5565,6 +5568,14 @@ MonoBehaviour:
     pitchVariance: 0.8
     loop: 0
     source: {fileID: 0}
+  - name: Beat
+    clip: {fileID: 8300000, guid: 8e6cd4a1a43521f42845f852a60f30f8, type: 3}
+    volume: 1
+    volumeVariance: 0
+    pitch: 1
+    pitchVariance: 0.3
+    loop: 0
+    source: {fileID: 0}
 --- !u!4 &2066149925
 Transform:
   m_ObjectHideFlags: 0
@@ -5596,7 +5607,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2091061566
 RectTransform:
   m_ObjectHideFlags: 0

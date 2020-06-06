@@ -13,12 +13,14 @@ public class HumanController : MonoBehaviour {
     public bool _protected;
     public List<string> traits;
     public string description;
+    public int yearsToCollect;
     private void Awake() {
         _mesh = GetComponent<MeshRenderer>();
         human = (HumanData) ScriptableObject.CreateInstance("HumanData");
         this.state = HumanState.Unselected; 
     }
     private void Start() {
+        yearsToCollect = human.lifeExpectancy - human.age;
         description = "";
         foreach(string trait in traits) {
             description += trait+"\n\n";
@@ -63,7 +65,7 @@ public class HumanController : MonoBehaviour {
         AudioManager.current.Play("Step");
     }
 
-    private void OnDestroy() {
-        years.Value += human.lifeExpectancy - human.age;
-    }
+    // private void OnDestroy() {
+    //     years.Value += yearsToCollect;
+    // }
 }
