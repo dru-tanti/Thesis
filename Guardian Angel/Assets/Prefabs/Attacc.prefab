@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 622150fc49405ea4d92a4d87b072248b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -113,6 +113,9 @@ MonoBehaviour:
   path: []
   years: {fileID: 11400000, guid: 048376f35147b354baa6fd0c7d206e6f, type: 2}
   _protected: 0
+  traits: []
+  description: 
+  yearsToCollect: 0
 --- !u!114 &-4099982533559867696
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -44,16 +44,16 @@ public class HumanController : MonoBehaviour {
         // Change the colour of the human if it is selected.
         // NOTE: FOR TESTING PURPOSES.
         if(state == HumanState.Selected) {
-            _mesh.material.color = Color.red;
+            _mesh.material.SetColor("_BaseColor",Color.red);
         } else {
             if(_protected) {
-                _mesh.material.color = Color.cyan;
+                _mesh.material.SetColor("_BaseColor",Color.cyan);
             } else {
-                _mesh.material.color = Color.blue;
+                _mesh.material.SetColor("_BaseColor",Color.blue);
             }
         }
         if(state == HumanState.Hover) {
-            _mesh.material.color = Color.yellow;
+            _mesh.material.SetColor("_BaseColor",Color.yellow);
         }
     }
     
